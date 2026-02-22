@@ -1,0 +1,9 @@
+2026-02-21 21:00:54.006586 - session-start ejecutado
+2026-02-21 21:05:37.493205 - session-end ejecutado
+2026-02-21 21:05:37.495806 - stdin recibido: 299 bytes
+2026-02-21 21:05:37.497487 - transcript_path: C:\Users\RodrigoCabrera\.claude\projects\D--inside-projects-n8n-workflows\0b8f70ae-e369-4ec7-b6c1-895b83f2b9df.jsonl
+2026-02-21 21:05:37.499471 - intentando con minimax-m2.5:cloud
+2026-02-21 21:05:55.873249 - status minimax-m2.5:cloud: 200
+2026-02-21 21:05:55.876260 - summary length: 1074
+2026-02-21 21:05:55.882287 - session-context.md escrito OK
+2026-02-21 21:10:01.500721 - session-start ejecutado
