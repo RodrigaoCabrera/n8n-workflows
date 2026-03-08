@@ -1,2 +1,3 @@
 # Archivo problemático de Windows (nombre de dispositivo reservado)
 nul
+.env

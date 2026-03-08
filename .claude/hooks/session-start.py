@@ -4,43 +4,70 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Debug log en ruta que funciona en Windows/Git Bash
-Path(".claude/hook-debug.log").open("a").write(
-    f"{datetime.now()} - session-start ejecutado\n"
-)
+LOG = Path(".claude/hook-debug.log")
+LOG.parent.mkdir(parents=True, exist_ok=True)
 
-data = json.load(sys.stdin)
+def log(msg): 
+    LOG.open("a", encoding="utf-8").write(f"{datetime.now()} - {msg}\n")
+
+log("session-start ejecutado")
+
+try:
+    raw = sys.stdin.read()
+    log(f"stdin recibido: {len(raw)} bytes")
+    data = json.loads(raw) if raw.strip() else {}
+except Exception as e:
+    log(f"error leyendo stdin: {e}")
+    data = {}
+
 cwd = data.get("cwd", "")
+log(f"cwd: {cwd}")
 
-output = []
+context_parts = []
 
 # Contexto de sesión previa
-context_file = Path(".claude/session-context.md")
-if context_file.exists() and context_file.stat().st_size > 0:
-    output.append("## Contexto de sesión anterior")
-    output.append(context_file.read_text())
-    output.append("")
+try:
+    context_file = Path(".claude/session-context.md")
+    if context_file.exists() and context_file.stat().st_size > 0:
+        log("cargando session-context.md")
+        content = context_file.read_text(encoding="utf-8")
+        content = content.replace("`", "'")
+        context_parts.append("## Contexto de sesion anterior\n" + content)
+    else:
+        log("sin session-context.md previo")
+except Exception as e:
+    log(f"error leyendo context: {e}")
 
 # Git info (solo si hay repo)
 try:
     branch = subprocess.run(
         ["git", "branch", "--show-current"], capture_output=True, text=True, cwd=cwd
     )
+    log(f"git returncode: {branch.returncode}")
     if branch.returncode == 0 and branch.stdout.strip():
-        output.append("## Estado Git")
-        output.append(f"Branch: {branch.stdout.strip()}")
+        git_info = f"## Estado Git\nBranch: {branch.stdout.strip()}"
         status = subprocess.run(
             ["git", "status", "--short"], capture_output=True, text=True, cwd=cwd
         )
         if status.stdout.strip():
-            output.append(status.stdout.strip())
+            git_info += f"\n{status.stdout.strip()}"
         else:
-            output.append("Working tree limpio")
-        output.append("")
-except Exception:
-    pass
+            git_info += "\nWorking tree limpio"
+        context_parts.append(git_info)
+except Exception as e:
+    log(f"error git: {e}")
 
-if output:
-    print("\n".join(output))
+if context_parts:
+    additional_context = "\n\n".join(context_parts)
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "SessionStart",
+            "additionalContext": additional_context
+        }
+    }
+    log(f"enviando additionalContext: {len(additional_context)} chars")
+    print(json.dumps(output))
+else:
+    log("sin contexto para enviar")
 
 sys.exit(0)

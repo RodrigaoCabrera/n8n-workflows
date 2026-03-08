@@ -1,177 +1,249 @@
-// Score FMP - Fixed ticker lookup
-const finvizFull = [];
-try {
-  const fv = $('Finviz Extract').all();
-  if (Array.isArray(fv)) finvizFull.push(...fv);
-} catch(e) { console.log('Finviz Extract error:', e.message); }
+/**
+ * score-fmp-fixed.js
+ * Tests score logic against Historial.csv
+ * Run: node score-fmp-fixed.js
+ */
 
-const finvizMap = {};
-finvizFull.forEach(item => {
-  const t = item?.json?._ticker || '';
-  if(t) finvizMap[t] = item.json;
-});
+const fs = require('fs');
+const path = require('path');
 
-const checkRsiItems = $('Check RSI').all();
-const allProfile = $('FMP Profile').all();
-const allRatios = $('FMP Ratios').all();
-const allMetrics = $('FMP Metrics').all();
-
-console.log('=== Score FMP Debug ===');
-console.log('checkRsiItems:', checkRsiItems.length);
-console.log('allProfile:', allProfile.length);
-console.log('allRatios:', allRatios.length);
-console.log('allMetrics:', allMetrics.length);
-
-const results = [];
-
-const parseNum = val => {
-  if(!val || val === '-') return null;
-  const c = String(val).replace(/[%,]/g, '');
-  const n = parseFloat(c);
-  return isNaN(n) ? null : n;
-};
-
-// Robust ticker finder - handles multiple response formats
-const findByTicker = (arr, ticker) => {
-  if (!arr || !Array.isArray(arr)) return { json: {} };
-
-  for (const item of arr) {
-    if (!item?.json) continue;
-    const j = item.json;
-
-    // Handle array response format from FMP
-    if (Array.isArray(j)) {
-      const found = j.find(it => it?.symbol === ticker || it?.Ticker === ticker);
-      if (found) return { json: found };
+// ─── Parse CSV ────────────────────────────────────────────────────────────────
+function parseCsv(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const lines = raw.trim().split('\n');
+  const headers = lines[0].split(',');
+  return lines.slice(1).map(line => {
+    // Handle quoted fields with commas
+    const cols = [];
+    let inQuote = false;
+    let cur = '';
+    for (const ch of line) {
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { cols.push(cur); cur = ''; }
+      else { cur += ch; }
     }
-
-    // Handle object with symbol directly
-    if (j.symbol === ticker || j.Ticker === ticker || j._ticker === ticker) {
-      return item;
-    }
-  }
-  return { json: {} };
-};
-
-for(let i = 0; i < checkRsiItems.length; i++) {
-  const check = checkRsiItems[i]?.json;
-  if(!check) continue;
-
-  if(check._fmpFailed) {
-    console.log('Skipping FMP failed:', check._ticker);
-    continue;
-  }
-
-  const ticker = check._ticker;
-  console.log('Processing ticker:', ticker);
-
-  const profile = findByTicker(allProfile, ticker).json || {};
-  const ratios = findByTicker(allRatios, ticker).json || {};
-  const metrics = findByTicker(allMetrics, ticker).json || {};
-
-  console.log('Profile found:', !!profile?.symbol, 'Sector:', profile?.sector);
-
-  const getFinvizField = field => {
-    const fv = finvizMap[ticker] || {};
-    const lbls = fv.allLabels || [];
-    const vals = fv.allValues || [];
-    const idx = lbls.findIndex(l => l?.trim() === field);
-    return idx !== -1 ? vals[idx] : null;
-  };
-
-  const price = profile.price || parseNum(getFinvizField('Price')) || 0;
-  const eps = profile.eps || null;
-  let peRatio = ratios.priceToEarningsRatioTTM || null;
-  if(!peRatio && eps && price) peRatio = price / eps;
-  if(!peRatio) { const peStr = getFinvizField('P/E'); peRatio = parseNum(peStr); }
-
-  const roe = metrics.returnOnEquityTTM || null;
-  const profitMargin = ratios.netProfitMarginTTM || null;
-  const beta = profile.beta || parseNum(getFinvizField('Beta')) || 1;
-  const marketCap = profile.marketCap || parseNum(getFinvizField('Market Cap')) || 0;
-  const companyName = profile.companyName || ticker;
-  const sector = profile.sector || profile.industry || 'N/A';
-  let high52w = price;
-  if(profile.range) { const parts = profile.range.split('-'); high52w = parseFloat(parts[1]) || price; }
-
-  const pasaFiltro = (peRatio > 0 && peRatio < 40 && (roe || profitMargin) && marketCap > 500000000);
-  if(!pasaFiltro) {
-    results.push({ json: { filtrado: false, Ticker: ticker, reason: 'FILTER', DataSource: 'FMP' } });
-    continue;
-  }
-
-  let scoreFund = 0;
-  if(peRatio < 15) scoreFund += 10;
-  else if(peRatio < 25) scoreFund += 7;
-  else if(peRatio < 40) scoreFund += 5;
-
-  const roeVal = roe !== null ? roe : (parseNum(getFinvizField('ROE')) / 100);
-  if(roeVal) {
-    if(roeVal > 0.20) scoreFund += 10;
-    else if(roeVal > 0.10) scoreFund += 7;
-    else if(roeVal > 0.05) scoreFund += 3;
-  }
-
-  const pmVal = profitMargin !== null ? profitMargin : (parseNum(getFinvizField('Profit Margin')) / 100);
-  if(pmVal) {
-    if(pmVal > 0.20) scoreFund += 10;
-    else if(pmVal > 0.10) scoreFund += 7;
-    else if(pmVal > 0) scoreFund += 3;
-  }
-
-  let rsiVal = check._rsiAlpha;
-  let rsiSource = check._rsiSource;
-  if(rsiVal === null) {
-    const rsiStr = getFinvizField('RSI (14)');
-    rsiVal = parseNum(rsiStr);
-    if(rsiVal !== null) rsiSource = 'Finviz';
-  }
-
-  let scoreTec = 0;
-  if(rsiVal !== null) {
-    if(rsiVal < 30) scoreTec += 18;
-    else if(rsiVal < 40) scoreTec += 15;
-    else if(rsiVal < 60) scoreTec += 10;
-    else if(rsiVal < 70) scoreTec += 5;
-  }
-
-  const distHigh = high52w > 0 ? ((high52w - price) / high52w) * 100 : 0;
-  if(distHigh > 20) scoreTec += 7;
-  else if(distHigh < 5) scoreTec -= 5;
-
-  const total = Math.round(scoreFund + scoreTec + 12.5);
-  let senal = 'NEUTRAL';
-  if(total >= 80) senal = 'COMPRA FUERTE';
-  else if(total >= 60) senal = 'COMPRA';
-  else if(total >= 40) senal = 'NEUTRAL';
-  else senal = 'EVITAR';
-
-  let perfil = 'Arriesgado';
-  if(beta < 1 && marketCap > 10000000000) perfil = 'Conservador';
-
-  results.push({ json: {
-    filtrado: true,
-    Fecha: new Date().toISOString().split('T')[0],
-    Ticker: ticker,
-    Empresa: companyName,
-    Sector: sector,
-    Precio: price,
-    PE: peRatio !== null ? Number(peRatio).toFixed(2) : 'N/A',
-    ROE: roeVal !== null ? (roeVal * 100).toFixed(2) + '%' : 'N/A',
-    ProfitMargin: pmVal !== null ? (pmVal * 100).toFixed(2) + '%' : 'N/A',
-    MarketCap: (marketCap / 1e9).toFixed(2) + 'B',
-    Beta: Number(beta).toFixed(2),
-    RSI: rsiVal !== null ? Number(rsiVal).toFixed(2) : 'N/A',
-    RSI_Source: rsiSource,
-    Dist52wHigh: distHigh.toFixed(1) + '%',
-    Sentimiento: 'NEUTRAL',
-    TieneSuper: 'N/A',
-    Senal: senal,
-    Score: total,
-    Perfil: perfil,
-    DataSource: 'FMP+Finviz'
-  }});
+    cols.push(cur);
+    const row = {};
+    headers.forEach((h, i) => { row[h.trim()] = (cols[i] || '').trim(); });
+    return row;
+  });
 }
 
-console.log('Results:', results.length);
-return results;
+// ─── Clean numeric value (strips $, %, B, M, commas) ─────────────────────────
+function parseNum(val) {
+  if (!val || val === 'N/A' || val === '' || val === '-') return null;
+  const cleaned = String(val).replace(/[$\s]/g, '').replace(/%$/, '').replace(/,/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? null : num;
+}
+
+function parseMarketCap(val) {
+  if (!val || val === 'N/A') return null;
+  const s = String(val).replace(/[$,\s]/g, '');
+  const num = parseFloat(s);
+  if (isNaN(num)) return null;
+  // MarketCap in CSV is stored as "3036.79B", "116.43B", etc.
+  if (s.endsWith('T')) return num * 1000;
+  if (s.endsWith('B')) return num;
+  if (s.endsWith('M')) return num / 1000;
+  return num / 1e9;
+}
+
+// ─── RSI: prefer RSI_Raw (clean), fallback to RSI (strip $) ──────────────────
+function getRSI(row) {
+  const raw = parseNum(row['RSI_Raw']);
+  if (raw !== null) return raw;
+  return parseNum(row['RSI']);
+}
+
+// ─── Fundamental filter ───────────────────────────────────────────────────────
+function filterStock(row) {
+  const pe = parseNum(row['PE']);
+  const roe = parseNum(row['ROE']);
+  const profitMargin = parseNum(row['ProfitMargin']);
+  const epsGrowth = parseNum(row['EPSGrowth']);
+
+  const reasons = [];
+  if (pe !== null && pe > 40) reasons.push('PE');
+  if (roe !== null && roe < 5) reasons.push('ROE');
+  if (profitMargin !== null && profitMargin <= 0) reasons.push('PROFIT_MARGIN');
+  if (epsGrowth !== null && epsGrowth < 10) reasons.push('EPS_GROWTH');
+
+  return { passed: reasons.length === 0, reasons };
+}
+
+// ─── Profile assignment ───────────────────────────────────────────────────────
+function assignProfile(row, passed) {
+  if (!passed) return 'FILTRADO';
+
+  const mc = parseMarketCap(row['MarketCap']);
+  const beta = parseNum(row['Beta']);
+  const dividend = parseNum(row['DividendYield']);
+  const epsGrowth = parseNum(row['EPSGrowth']);
+  const rsi = getRSI(row);
+
+  // Conservador: Large cap >10B, low beta <1.0, pays dividend, RSI in safe zone
+  const isConservador = mc !== null && mc >= 10
+    && beta !== null && beta < 1.0
+    && dividend !== null && dividend > 0
+    && rsi !== null && rsi >= 30 && rsi <= 65;
+
+  // Arriesgado: high beta, strong EPS growth
+  const isArriesgado = beta !== null && beta >= 1.0
+    && epsGrowth !== null && epsGrowth > 20;
+
+  if (isConservador) return 'Conservador';
+  if (isArriesgado) return 'Arriesgado';
+  return 'Balanceado';
+}
+
+// ─── Buy signal ───────────────────────────────────────────────────────────────
+function getBuySignal(row) {
+  const rsi = getRSI(row);
+  if (rsi === null) return 'SIN_RSI';
+  if (rsi < 30) return 'COMPRA';
+  if (rsi > 70) return 'ESPERAR';
+  return 'NEUTRAL';
+}
+
+// ─── Scoring ──────────────────────────────────────────────────────────────────
+function scoreStock(row) {
+  const pe = parseNum(row['PE']);
+  const roe = parseNum(row['ROE']);
+  const profitMargin = parseNum(row['ProfitMargin']);
+  const rsi = getRSI(row);
+
+  // Fundamentals (30 pts)
+  let scoreFund = 0;
+  if (pe !== null) scoreFund += pe < 15 ? 10 : pe < 25 ? 7 : pe < 35 ? 4 : 1;
+  if (roe !== null) scoreFund += roe > 30 ? 10 : roe > 15 ? 7 : roe > 5 ? 4 : 1;
+  if (profitMargin !== null) scoreFund += profitMargin > 25 ? 10 : profitMargin > 10 ? 7 : profitMargin > 0 ? 4 : 0;
+
+  // Technical (25 pts) — RSI
+  let scoreTec = 0;
+  if (rsi !== null) {
+    if (rsi < 30) scoreTec += 25;
+    else if (rsi < 40) scoreTec += 20;
+    else if (rsi < 50) scoreTec += 15;
+    else if (rsi < 60) scoreTec += 10;
+    else if (rsi < 70) scoreTec += 5;
+    else scoreTec += 0;
+  }
+
+  // Sentiment (25 pts)
+  const sent = (row['Sentimiento'] || '').toUpperCase();
+  const scoreSent = sent === 'POSITIVO' ? 25 : sent === 'NEUTRAL' ? 12 : 0;
+
+  // Super investors (20 pts)
+  const tieneSuper = row['TieneSuper'];
+  const scoreSuper = (tieneSuper === 'SI' || tieneSuper === 'true') ? 20 : 0;
+
+  const total = Math.min(100, scoreFund + scoreTec + scoreSent + scoreSuper);
+  return { total, scoreFund, scoreTec, scoreSent, scoreSuper };
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+const csvPath = path.join(__dirname, 'Historial.csv');
+const rows = parseCsv(csvPath);
+
+console.log('='.repeat(70));
+console.log('STOCK SCREENER - SCORE TEST');
+console.log('='.repeat(70));
+
+const conservador = [];
+const arriesgado = [];
+const balanceado = [];
+const senales = [];
+
+for (const row of rows) {
+  const ticker = row['Ticker'];
+  const { passed, reasons } = filterStock(row);
+  const profile = assignProfile(row, passed);
+  const signal = getBuySignal(row);
+  const scores = scoreStock(row);
+  const rsi = getRSI(row);
+
+  const result = Object.assign({}, {
+    ticker,
+    empresa: row['Empresa'],
+    sector: row['Sector'],
+    precio: row['Precio'],
+    pe: parseNum(row['PE']),
+    roe: parseNum(row['ROE']),
+    profitMargin: parseNum(row['ProfitMargin']),
+    marketCap: row['MarketCap'],
+    beta: parseNum(row['Beta']),
+    dividendYield: parseNum(row['DividendYield']),
+    epsGrowth: parseNum(row['EPSGrowth']),
+    rsi,          // clean RSI, no $ symbol
+    dist52wHigh: parseNum(row['Dist52wHigh']),
+    filtrado: passed,
+    reasons: passed ? 'PASSED' : reasons.join(', '),
+    signal,
+    profile,
+  }, scores);
+
+  // Route to profile tabs (only if passed filter)
+  if (passed) {
+    if (profile === 'Conservador') conservador.push(result);
+    else if (profile === 'Arriesgado') arriesgado.push(result);
+    else balanceado.push(result);
+  }
+
+  // Señales: ALL tickers with COMPRA signal (regardless of fundamental filter)
+  if (signal === 'COMPRA') senales.push(result);
+
+  const rsiStr = rsi !== null ? rsi.toFixed(2) : 'N/A';
+  const filtStr = passed ? 'PASA  ' : `FILTRA(${result.reasons})`;
+  console.log(`${ticker.padEnd(6)} | RSI:${rsiStr.padStart(6)} | ${signal.padEnd(7)} | ${profile.padEnd(12)} | Score:${String(scores.total).padStart(3)} | ${filtStr}`);
+}
+
+// ─── Results summary ──────────────────────────────────────────────────────────
+console.log('\n' + '='.repeat(70));
+console.log('TAB CONSERVADOR:', conservador.length ? conservador.map(r => r.ticker).join(', ') : '(vacío)');
+console.log('TAB ARRIESGADO: ', arriesgado.length ? arriesgado.map(r => r.ticker).join(', ') : '(vacío)');
+console.log('TAB BALANCEADO: ', balanceado.length ? balanceado.map(r => r.ticker).join(', ') : '(vacío)');
+console.log('TAB SEÑALES:    ', senales.length ? senales.map(r => `${r.ticker}(RSI:${r.rsi.toFixed(2)})`).join(', ') : '(vacío)');
+
+// ─── Conservador diagnosis ────────────────────────────────────────────────────
+if (conservador.length === 0) {
+  console.log('\nCONSERVADOR VACIO - Diagnóstico por ticker que pasa filtro:');
+  for (const row of rows) {
+    const { passed } = filterStock(row);
+    if (!passed) continue;
+    const mc = parseMarketCap(row['MarketCap']);
+    const beta = parseNum(row['Beta']);
+    const div = parseNum(row['DividendYield']);
+    const rsi = getRSI(row);
+    const ticker = row['Ticker'];
+    const issues = [];
+    if (!mc || mc < 10) issues.push(`MarketCap=${mc?.toFixed(0)}B < 10B`);
+    if (beta === null || beta >= 1.0) issues.push(`Beta=${beta} >= 1.0`);
+    if (!div || div <= 0) issues.push(`DividendYield=${div}% (no paga dividendo o no extraído)`);
+    if (rsi === null || rsi < 30 || rsi > 65) issues.push(`RSI=${rsi} fuera de [30,65]`);
+    console.log(`  ${ticker}: ${issues.length ? issues.join(' | ') : 'OK'}`);
+  }
+}
+
+// ─── Field analysis ───────────────────────────────────────────────────────────
+console.log('\n' + '='.repeat(70));
+console.log('CAMPOS A ELIMINAR DEL SHEET (no aportan valor):');
+const toRemove = [
+  { field: 'RSI_Source',      reason: 'Siempre vacío — no se usa' },
+  { field: 'EPS',             reason: 'EPS crudo no se usa en scoring; solo importa EPSGrowth %' },
+  { field: 'Income',          reason: 'No se usa en scoring; tamaño cubierto por MarketCap' },
+  { field: 'Ranking',         reason: 'Número secuencial de fila, no es señal de calidad' },
+  { field: 'FundamentalScore',reason: 'Duplicado de ScoreFund — redundante' },
+];
+toRemove.forEach(f => console.log(`  ✗ ${f.field.padEnd(18)} → ${f.reason}`));
+
+console.log('\nCAMPOS UTILES (conservar):');
+const toKeep = [
+  'Fecha','Ticker','Empresa','Sector','Precio',
+  'PE','ROE','ProfitMargin','MarketCap','Beta','DividendYield','EPSGrowth',
+  'RSI','Dist52wHigh','DataSource',
+  'filtrado','reason','Sentimiento','TieneSuper','Senal',
+  'Score','ScoreFund','ScoreTec','ScoreSent','ScoreSuper','Perfil',
+];
+console.log('  ', toKeep.join(', '));
+console.log('\nNOTA: RSI_Raw se usa internamente para limpiar RSI pero no necesita columna propia en el Sheet');

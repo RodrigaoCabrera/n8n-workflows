@@ -1,0 +1,889 @@
+<!doctype html>\n
+<html lang="en" class="dark">
+  \n<head>
+    \n
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      \nnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      \nj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      \n'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      \n})(window,document,'script','dataLayer','GTM-537M973G');
+    </script>
+    \n \n
+    <script>
+      \n    window.dataLayer = window.dataLayer || [];
+      \n
+      \n    function gtag(command, key, value) {
+      \n
+      \n        if (command === 'set' && key === 'page_path') {
+      \n            dataLayer.push({
+      \n                event: 'virtual_pageview',
+      \n                page_path: value
+      \n            });
+      \n            return;
+      \n        }
+      \n
+      \n        if (command === 'event') {
+      \n            dataLayer.push(Object.assign({ event: key }, value || {}));
+      \n            return;
+      \n        }
+      \n
+      \n        dataLayer.push(arguments);
+      \n    }
+      \n
+    </script>
+    <title>FINVIZ</title>
+    \n
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1024" />
+    <meta
+      name="description"
+      content="Stock screener for investors and traders, financial visualizations."
+    />
+    \n \n
+    <link
+      rel="preload"
+      href="/fonts/lato-v17-latin-ext_latin-regular.woff2"
+      as="font"
+      crossorigin
+    />
+    \n
+    <link
+      rel="preload"
+      href="/fonts/lato-v17-latin-ext_latin-700.woff2"
+      as="font"
+      crossorigin
+    />
+    \n
+    <link
+      rel="preload"
+      href="/fonts/lato-v17-latin-ext_latin-900.woff2"
+      as="font"
+      crossorigin
+    />
+    \n
+    <link
+      rel="preload"
+      href="/fonts/finviz-sans-415-normal-latin.woff2"
+      as="font"
+      crossorigin
+    />
+    \n
+    <link
+      rel="preload"
+      href="/fonts/finviz-sans-450-normal-latin.woff2"
+      as="font"
+      crossorigin
+    />
+    \n
+    <link
+      rel="preload"
+      href="/fonts/finviz-sans-500-normal-latin.woff2"
+      as="font"
+      crossorigin
+    />
+    \n
+    <link
+      rel="preload"
+      href="/fonts/finviz-sans-700-normal-latin.woff2"
+      as="font"
+      crossorigin
+    />
+    \n \n
+    <script>
+      \n                window.notificationsArray = [];
+      \n                window.renderScriptNotLoaded = function () {};
+      \n                window.handleScriptNotLoaded = function (element) {
+      \n                    window.notificationsArray.push(element);
+      \n                    window.sentryDisabled = true;
+      \n                    window.handleScriptNotLoaded = function () {};
+      \n                };
+      \n
+    </script>
+    \n
+    <link
+      rel="stylesheet"
+      href="/assets/dist/finviz.9e4926f4.css"
+      type="text/css"
+      onerror="window.handleScriptNotLoaded(this)"
+    />
+    \n
+    <link
+      rel="stylesheet"
+      href="/assets/dist/redesign.35a12fc1.css"
+      type="text/css"
+      onerror="window.handleScriptNotLoaded(this)"
+    />
+    \n
+    <link
+      rel="stylesheet"
+      href="/assets/dist/main.5d9a2a48.css"
+      type="text/css"
+      onerror="window.handleScriptNotLoaded(this)"
+    />
+    \n
+    <link rel="icon" type="image/png" href="/favicon_2x.png" sizes="32x32" />
+    \n
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="16x16" />
+    \n
+    <script async="true">
+      \n    !(function(q,_name){q[_name]=q[_name]||function k(){(k.q=k.q||[]).push(arguments)},q[_name].v=q[_name].v||2,q[_name].s="1";!(function(q,k,F,H){function m(F,H){try{m=q.localStorage,(F=JSON.parse(m[decodeURI(decodeURI('%67%25%365%25%37%34I%257%34e%6d'))]("_aQS01OUU2MkU1RURCQzRDMzUyMTIwQkM4ODYtMTE0")).lgk||[])&&(H=q[k].pubads())&&F.forEach((function(q){q&&q[0]&&H.setTargeting(q[0],q[1]||"")}))}catch(N){}var m}try{(H=q[k]=q[k]||{}).cmd=H.cmd||[],typeof H.pubads===F?m():typeof H.cmd.unshift===F?H.cmd.unshift(m):H.cmd.push(m)}catch(N){}})(window,decodeURI(decodeURI('%25%367o%25%36fg%256c%25%36%35%2574%256%31%25%36%37')),"function");;!(function(q){q.__admiral_getConsentForGTM=function(k){function F(q,F){k((function(q,k){const F=q&&q.purpose&&q.purpose.consents||{};return{adConsentGranted:k||!!F[1],adUserData:k||!!F[7],adPersonalization:k||!!F[3],analyticsConsentGranted:k||!!F[1],personalizationConsentGranted:k||!!F[5],functionalityConsentGranted:k||!1,securityConsentGranted:k||!0}})(q,!F))}q[_name]("after","cmp.loaded",(function(k){k&&k.tcData&&k.tcData.gdprApplies?(k.consentKnown&&F(k.tcData,!0),q[_name]("after","cmp.updated",(function(q){F(q.tcData,!0)}))):F({},!1)}))}})(window);})(window,decodeURI(decodeURI('a%256%34m%25%369%25%37%32%256%31l')));!(function(q,k,F,H){F=q.createElement(k),q=q.getElementsByTagName(k)[0],F.async=1,F.src="https://urbanlaurel.com/assets/js/q2o3um29vhadcznq.vendor.js",(H=0)&&H(F),q.parentNode.insertBefore(F,q)})(document,"script");;;!(function(q,k,F,H,m){function N(){for(var q=[],F=0;F<arguments.length;F++)q.push(arguments[F]);if(!q.length)return m;"ping"===q[0]?q[2]({gdprAppliesGlobally:!!k[decodeURI(decodeURI('_%25%35%66c%6d%25%37%30%254%37%25%364%25%370%257%32A%2570%25%370%256%63%2569%65%73%2547%256%63o%25%36%32%25%361%25%36%63%6c%79'))],cmpLoaded:!1,cmpStatus:"stub"}):q.length>0&&m.push(q)}function L(q){if(q&&q.data&&q.source){var H,m=q.source,N="__tcfapiCall",L="string"==typeof q.data&&q.data.indexOf(N)>=0;(H=L?((function(q){try{return JSON.parse(q)}catch(k){}})(q.data)||{})[N]:(q.data||{})[N])&&k[F](H.command,H.version,(function(q,k){var F={__tcfapiReturn:{returnValue:q,success:k,callId:H.callId}};m&&m.postMessage(L?JSON.stringify(F):F,"*")}),H.parameter)}}!(function t(){if(!k.frames[H]){var F=q.body;if(F){var m=q.createElement("iframe");m.style.display="none",m.name=H,F.appendChild(m)}else setTimeout(t,5)}})(),N.v=1,"function"!=typeof k[F]&&(k[F]=k[F]||N,k.addEventListener?k.addEventListener("message",L,!1):k.attachEvent&&k.attachEvent("onmessage",L))})(document,window,"__tcfapi","__tcfapiLocator",[]);;;!(function(q,k,F,H,m,N,L,t,A,K,R){function Y(){for(var q=[],k=arguments.length,F=0;F<k;F++)q.push(arguments[F]);var H,m=q[1],N=typeof m===L,t=q[2],Y={gppVersion:"1.1",cmpStatus:"stub",cmpDisplayStatus:"hidden",signalStatus:"not ready",supportedAPIs:["7:usnat"].reduce((function(q,k){return k&&q.push(k),q}),[]),cmpId:9,sectionList:[],applicableSections:[0],gppString:"",parsedSections:{}};function v(q){N&&m(q,!0)}switch(q[0]){case"ping":return v(Y);case"queue":return A;case"events":return K;case"addEventListener":return N&&(H=++R,K.push({id:H,callback:m,parameter:t})),v({eventName:"listenerRegistered",listenerId:H,data:!0,pingData:Y});case"removeEventListener":for(H=!1,F=0;F<K.length;F++)if(K[F].id===t){K.splice(F,1),H=!0;break}return v(H);case"hasSection":case"getSection":case"getField":return v(null);default:return void A.push(q)}}Y.v=2,typeof k[F]!==L&&(k[F]=k[F]||Y,k[t]&&k[t]("message",(function(q,H){var L="string"==typeof q.data;(H=L?((function(q){try{return JSON.parse(q)}catch(k){}})(q.data)||{})[m]:(q.data||{})[m])&&k[F](H.command,(function(k,F){var m={__gppReturn:{returnValue:k,success:F,callId:H.callId}};q.source&&q.source.postMessage(L?JSON.stringify(m):m,"*")}),N in H?H[N]:null,H.version||1)}),!1),(function v(){if(!k.frames[H]){var F=q.body;if(F){var m=q.createElement("iframe");m.style.display="none",m.name=H,F.appendChild(m)}else setTimeout(v,5)}})())})(document,window,"__gpp","__gppLocator","__gppCall","parameter","function","addEventListener",[],[],0);
+      \n    ;(function () {
+      \n        window.ic_privacySelectorLoaded = false;
+      \n
+      \n        window.admiral("after", "candidate.dismissed", function () {
+      \n            if (window.checkBannersLoaded) checkBannersLoaded();
+      \n        });
+      \n
+      \n        window.admiral("after", "cmp.loaded", function (eventArg) {
+      \n            console.log("Admiral CMP Loaded ", eventArg);
+      \n            if (eventArg.euVisitor) return;
+      \n            try {
+      \n                __gpp("addEventListener", function (tcData) {
+      \n                    window.ic_privacySelectorLoaded = true;
+      \n                });
+      \n            } catch (e) {
+      \n                console.error(e)
+      \n            }
+      \n        });
+      \n    })();
+      \n
+    </script>
+    <script type="text/javascript">
+      \n    (function(c,l,a,r,i,t,y){
+      \n        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      \n        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      \n        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      \n    })(window, document, "clarity", "script", "unkwe89mcc");
+      \n
+    </script>
+    <script>
+      \n            FinvizSettings = {
+      \n                versionImages: 4077308128,
+      \n                hasUserPremium: false,
+      \n                userId: null,
+      \n                name: "",
+      \n                email: "",
+      \n                nodeChartsDomain: "https://charts2-node.finviz.com",
+      \n                hasUserStickyHeader: false,
+      \n                adsProvider: 1,
+      \n                hasRedesignEnabled: true,
+      \n                hasRedesignPortfolio: false,
+      \n                hasDarkTheme: true,
+      \n                quoteSearchExt: '',
+      \n                isJoinBannerVisible: false,
+      \n                hasKnowledgeBase: false,
+      \n                hasNewComparePerf: false,
+      \n                hasCustomColumns: false,
+      \n                hasBFPromo: false,
+      \n                featureFlags: {"redesign":true,"stockswhymoving":true}
+      \n            };
+      \n
+    </script>
+    <script src="/assets/dist/script/browser_check.v1.ed01060a.js?v=2"></script>
+    <script
+      src="/assets/dist/script/notice.v1.3891e8fc.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/script/vendor/boxover.v1.0190e7ef.js"
+      defer
+    ></script>
+    \n
+    <script
+      src="/assets/dist/runtime.v1.725f7359.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/libs_init.v1.0d872e7c.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/8014.v1.87350716.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/3097.v1.d90ca904.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/2809.v1.4648327f.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/8949.v1.bb4d5b27.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/5972.v1.06888cc9.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/2698.v1.053302f4.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/header.v1.b3503280.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script></head
+  >\n
+  <body class="m-0">
+    <div id="js-elite-features-root"></div>
+    \n
+    <script>
+      \n                window.adLayoutVersion = 'control';
+      \n                window.adLoggedIn = 'NotLoggedIn';
+      \n
+      \n                var cookieName = 'fv_block';
+      \n                var selector = '[data-google-query-id]';
+      \n                var selectorFrame = selector + ' iframe, ' + selector + ' [id*=aax]';
+      \n                var cookieExpiry = 5 * 60 * 1000; // 5min
+      \n                var checkTimeout = 20 * 1000; // 20sec
+      \n
+      \n                function getCookie(value) {
+      \n                    var expiration = +new Date() + cookieExpiry;
+      \n                    return cookieName + '=' + value + '; expires=' + (new Date(expiration)).toUTCString() + '; path=/';
+      \n                }
+      \n
+      \n                var finvizBannersLoaded = false;
+      \n                function loadFinvizBanners(setCookie) {
+      \n
+      \n                    if (setCookie) document.cookie = getCookie('block');
+      \n                    finvizBannersLoaded = true;
+      \n                    var s = document.createElement('script');
+      \n                    s.type = 'text/javascript';
+      \n                    s.async = true;
+      \n                    s.src = '/assets/dist/script/finviz_b.v1.cbd65edf.js';
+      \n                    document.head.appendChild(s);
+      \n                }
+      \n
+      \n                function checkBannersLoaded() {
+      \n                    var checkEnd = +new Date() + checkTimeout;
+      \n                    function asyncCheckIfExists(selector, resolve) {
+      \n                        var now = +new Date();
+      \n                        var container = document.querySelector(selector);
+      \n                        if (!container && checkEnd > now) return setTimeout(function () { asyncCheckIfExists(selector, resolve) }, 1000)
+      \n                        resolve(!!container);
+      \n                    }
+      \n
+      \n                    asyncCheckIfExists(selector, function (exists) {
+      \n                        if (!exists) return loadFinvizBanners(true);
+      \n
+      \n                        asyncCheckIfExists(selectorFrame, function (hasIframe) {
+      \n                            if (!hasIframe) return loadFinvizBanners(true);
+      \n                        })
+      \n                    })
+      \n                }
+      \n
+      \n                if (document.cookie.indexOf(cookieName) >= 0) {
+      \n                    loadFinvizBanners(false);
+      \n                } else {
+      \n                    var s = document.createElement('script');
+      \n                    s.type = 'text/javascript';
+      \n                    s.async = true;
+      \n                    s.onerror = loadFinvizBanners;
+      \n                    s.src = 'https://u5.investingchannel.com/static/uat.js';
+      \n                    document.head.appendChild(s);
+      \n
+      \n                    InvestingChannelQueue = window.InvestingChannelQueue || [];
+      \n                    var ic_page;
+      \n
+      \n                    function refreshAd(container, refreshes) {
+      \n                        var placementTag, adslot;
+      \n                        window.InvestingChannelQueue.push(function () {
+      \n                            var pubTags = ic_page.getPubTag.call(ic_page, container.id);
+      \n                            if (!pubTags) return;
+      \n                            var pubTag = pubTags[0];
+      \n                            placementTag = pubTag.mPlacements[0].mTagToRender;
+      \n                            adslot = pubTag.mPlacements[0].mPublisherKval.adslot[0];
+      \n                            // Update div ID
+      \n                            var id = container.id.split('_');
+      \n                            var numberOfDivs = document.querySelectorAll('[id*=' + id.slice(0, id.length - 1).join('_') + ']').length;
+      \n                            var newDivNumber = Number(id.pop()) + numberOfDivs * refreshes;
+      \n                            container.setAttribute('id', id.join('_') + '_' + newDivNumber);
+      \n                            // Destroy previous pubtag & reset container html (loading span)
+      \n                            pubTag.destroy();
+      \n                            container.innerHTML = '';
+      \n                        });
+      \n                        window.InvestingChannelQueue.push(function () {
+      \n                            if (!placementTag || !adslot) return
+      \n                            // Create new pub tag
+      \n                            var newTag;
+      \n                            var layoutId = placementTag.mNativeLayout ? placementTag.mNativeLayout.nativelayoutid : null;
+      \n                            if (layoutId) {
+      \n                                newTag = ic_page.defineNativeTag('finviz/' + placementTag.mTarget.dfpkeyname, placementTag.mAdSize, container.id, layoutId);
+      \n                                var nativeLayout, layoutData
+      \n
+      \n                                try {
+      \n                                  nativeLayout = newTag.mPlacements[0].mTags[0].mNativeLayout;
+      \n                                } catch (e) {
+      \n                                    console.log(e.message)
+      \n                                }
+      \n
+      \n                                try {
+      \n                                  layoutData = newTag.mTemplate.mNativeLayout[layoutId].Data
+      \n                                  if (layoutData && nativeLayout && !nativeLayout.layout) {
+      \n                                    newTag.mPlacements[0].mTags[0].mNativeLayout = layoutData
+      \n                                  }
+      \n                                } catch (e) {
+      \n                                    console.log(e.message)
+      \n                                }
+      \n                            } else {
+      \n                                newTag = ic_page.defineTag('finviz/' + placementTag.mTarget.dfpkeyname, placementTag.mAdSize, container.id);
+      \n                            }
+      \n                            // Set adslot param
+      \n                            newTag.setKval({ adslot: adslot });
+      \n                            newTag.setKval({ kw: 'ajax' });
+      \n                            newTag.render();
+      \n                        });
+      \n                    }
+      \n
+      \n                    var refreshCount = 1;
+      \n                    function refreshAds(selectors) {
+      \n                        if (window.ic_page) {
+      \n                            document.querySelectorAll(selectors).forEach(function (element) {
+      \n                                try {
+      \n                                    refreshAd(element, refreshCount);
+      \n                                } catch (e) {
+      \n                                    console.log('Ad refresh error for:', element, e);
+      \n                                }
+      \n                            });
+      \n                            window.ic_page.loadMore();
+      \n                            refreshCount++;
+      \n                        }
+      \n                    }
+      \n
+      \n
+      \n                    InvestingChannelQueue.push(function() {
+      \n                        var icConfig = window['FINVIZ_IC_UAT_CONFIG'] = {};
+      \n
+      \n                        ic_page = InvestingChannel.UAT.Run('df0d0d52-cc7f-11e8-82a5-0abbb61c4a6a', icConfig);
+      \n                    });
+      \n
+      \n                    var hash = null;
+      \n                    if (typeof hash === 'string') {
+      \n                      InvestingChannelQueue.push(function() {
+      \n                          if (ic_page) {
+      \n                              ic_page.setUser({'SHA256': hash}, 'hash', '');
+      \n                          }
+      \n                      });
+      \n                    }
+      \n                }
+      \n
+    </script>
+    \n
+    <script>
+      \n                (function () {
+      \n                    var detectionEl = document.createElement('div');
+      \n                    detectionEl.style.position='absolute';
+      \n                    detectionEl.style.overflow='scroll';
+      \n                    document.body.appendChild(detectionEl);
+      \n                    document.documentElement.style.setProperty('--fv-scrollbar-width', `${detectionEl.offsetWidth}px`);
+      \n                    document.body.removeChild(detectionEl);
+      \n                })()
+      \n
+    </script>
+    \n
+    <div id="notifications-container"></div>
+    <table class="header">
+      \n
+      <tr class="align-top">
+        \n
+        <td>
+          \n
+          <table class="header-container">
+            \n
+            <tr>
+              \n
+              <td class="w-[30%]">
+                \n
+                <table class="w-full">
+                  \n
+                  <tr>
+                    \n
+                    <td class="h-[50px] align-middle">
+                      \n
+                      <a href="/" class="logo"
+                        ><svg width="225" height="32" class="block">
+                          \n
+                          <use href="/img/logo.svg#free" class="dark:hidden" />
+                          \n
+                          <use
+                            href="/img/logo.svg#free-dark"
+                            class="hidden dark:block"
+                          />
+                          \n
+                        </svg></a
+                      >
+                      \n
+                    </td>
+                    \n
+                  </tr>
+                  \n
+                  <tr>
+                    \n
+                    <td id="search" style="padding-top: 7px">
+                      \n
+                      <div class="navbar-search-placeholder">
+                        \n
+                        <span class="icon-wrapper">
+                          \n
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="icon"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                          >
+                            \n
+                            <path
+                              d="M16.9 15.5l4 4c.2.2.1.5 0 .7l-.7.7a.5.5 0 01-.8 0l-4-4c0-.2-.2-.3-.3-.4l-.7-1a7 7 0 01-11.2-4 7 7 0 1112.2 3l1 .6.5.4zM5 10a5 5 0 1010 0 5 5 0 00-10 0z"
+                            />
+                            \n
+                          </svg>
+                          \n
+                        </span>
+                        \n
+                        <input
+                          placeholder="Search ticker, company or profile"
+                          class="search-input is-free"
+                        />
+                        \n
+                      </div>
+                      \n
+                    </td>
+                    \n
+                  </tr>
+                  \n
+                </table>
+                \n
+              </td>
+              \n
+              <td class="align-bottom pb-1">
+                \n
+                <div
+                  id="microbar_position"
+                  class="hidden xl:flex items-center h-[37px] pl-2"
+                >
+                  <div>
+                    \n
+                    <div
+                      id="IC_D_88x31_1"
+                      class="relative overflow-hidden flex items-center justify-center w-full mx-auto"
+                      style="width: 88px; height: 31px; max-height: 31px"
+                    ></div>
+                    \n
+                  </div>
+                </div>
+                \n
+              </td>
+              \n
+              <td class="relative w-[730px] text-right">
+                \n
+                <div
+                  id="banner_position"
+                  class="overflow-hidden absolute top-0 right-0 w-full h-[96px]"
+                >
+                  \n
+                  <div
+                    id="IC_D_728x90_1"
+                    class="relative overflow-hidden flex items-center justify-center w-full mx-auto"
+                    style="width: 728px; height: 90px; max-height: 90px"
+                  ></div>
+                  \n
+                </div>
+                \n
+              </td>
+              \n
+            </tr>
+            \n
+          </table>
+          \n
+        </td>
+        \n
+      </tr>
+      \n
+      <tr>
+        \n
+        <td class="w-[994px] leading-none" style="font-size: 0">
+          \n <img src="/gfx/nic2x2.gif" class="w-[994px] h-px" alt="" /> \n
+        </td>
+        \n
+      </tr>
+      \n
+    </table>
+    \n
+    <table class="navbar">
+      \n
+      <tr>
+        \n
+        <td class="h-[30px]">
+          \n
+          <table class="header-container">
+            \n
+            <tr>
+              <td><a class="nav-link is-first" href="/">Home</a></td>
+              <td><a class="nav-link" href="/news.ashx">News</a></td>
+              <td><a class="nav-link" href="/screener.ashx">Screener</a></td>
+              <td>
+                <a
+                  class="nav-link"
+                  href="javascript:window.openEliteFeaturesDialog?.('multi-charts', event)"
+                  >Charts</a
+                >
+              </td>
+              <td><a class="nav-link" href="/map.ashx">Maps</a></td>
+              <td><a class="nav-link" href="/groups.ashx">Groups</a></td>
+              <td><a class="nav-link" href="/portfolio.ashx">Portfolio</a></td>
+              <td><a class="nav-link" href="/insidertrading">Insider</a></td>
+              <td><a class="nav-link" href="/futures.ashx">Futures</a></td>
+              <td><a class="nav-link" href="/forex.ashx">Forex</a></td>
+              <td><a class="nav-link" href="/crypto.ashx">Crypto</a></td>
+              <td>
+                <a class="nav-link" href="/calendar/economic">Calendar</a>
+              </td>
+              <td class="hidden [@media(min-width:1150px)]:table-cell">
+                <a
+                  class="nav-link"
+                  href="javascript:window.openEliteFeaturesDialog?.('backtests', event)"
+                  >Backtests</a
+                >
+              </td>
+              <td><a class="nav-link is-elite" href="/elite">Pricing</a></td>
+              <td class="w-full relative">
+                <div class="absolute bottom-0 left-0 right-0 top-0">
+                  <div id="time" class="pr-1"></div>
+                </div>
+              </td>
+              \n
+              <td class="nav relative">
+                \n
+                <a
+                  data-testid="chart-layout-theme"
+                  href="#"
+                  class="!flex !bg-transparent !border-b-0 mt-1 !py-0 !px-1"
+                  style="border-left: 1px solid #444a57"
+                  title="Toggle Light/Dark mode"
+                  onclick="setChartThemeCookie('light', true)"
+                >
+                  \n
+                  <div
+                    class="relative box-content flex rounded-full w-10 h-5 border border-gray-750 bg-gray-800 text-white justify-end"
+                  >
+                    \n
+                    <div
+                      class="box-border w-1/2 rounded-full p-px border border-gray-800 bg-[#4c5261] flex justify-center items-center"
+                    >
+                      \n
+                      <svg
+                        width="16"
+                        height="16"
+                        class="fill-current text-white inline-block -ml-px"
+                      >
+                        \n
+                        <use
+                          href="/assets/dist-icons/icons.svg?rev=4077308128#moonOutlined"
+                        />
+                        \n
+                      </svg>
+                      \n
+                    </div>
+                    \n
+                  </div>
+                  \n
+                  <span class="ml-1 select-none font-medium text-xs text-white"
+                    >Theme</span
+                  >
+                  \n
+                </a>
+                \n
+              </td>
+              \n \n
+              <td>
+                \n
+                <a
+                  href="/help/screener.ashx"
+                  class="nav-link is-help border-l border-[#444a57]"
+                  ><span class="fa fa-question-circle"></span>Help</a
+                >
+                \n
+              </td>
+              \n
+              <td><a href="/login" class="nav-link sign-in">Login</a></td>
+              \n
+              <td><a href="/register" class="nav-link sign-up">Register</a></td>
+              \n \n
+            </tr>
+            \n
+          </table>
+          \n
+        </td>
+        \n
+      </tr>
+      \n
+    </table>
+    \n \n
+    <script>
+      \n            function reloadPage () { location.reload() }
+      \n            function setChartThemeCookie(chartsTheme) {
+      \n              fetch('/api/set_cookie.ashx?cookie=chartsTheme&value=' + chartsTheme ).catch(function(){}).then(function(){
+      \n                window.gtag && window.gtag('event', 'click', { event_category: 'theme', event_label: 'toggle', value: chartsTheme, eventCallback: reloadPage });
+      \n                setTimeout(reloadPage,1000);
+      \n              })
+      \n            }
+      \n
+    </script>
+    <div
+      class="w-full flex justify-center dark:bg-violet-800 bg-violet-600 font-sans"
+      data-fv-notice="promo-analyst-ratings-now-on-finviz-charts"
+      data-nosnippet
+    >
+      \n
+      <div
+        class="h-10 relative flex gap-2.5 items-center dark:text-violet-200 text-white"
+      >
+        \n
+        <div
+          class="py-3 text-sm font-medium dark:text-violet-200 text-violet-100"
+        >
+          \n
+          <p>
+            \n <span class="text-white">New Feature:</span> \n See Wall Street
+            analyst ratings directly on Finviz charts for deeper context into
+            price action. \n
+          </p>
+          \n
+        </div>
+        \n
+        <a
+          title="Learn more"
+          href="/blog/analyst-ratings-now-on-finviz-charts"
+          class="inline-flex items-center justify-center rounded-md border-none outline-none ring-gray-200 font-medium focus-visible:ring-2 dark:ring-gray-500 bg-violet-500 hover:bg-gray-200/50 dark:bg-gray-500/30 dark:text-gray-50 text-white dark:hover:bg-gray-500/50 h-7 min-w-8 px-2.5 text-2xs"
+          onclick="
+            window.FinvizCloseNoticeRedirect(
+              event,
+              'promo-analyst-ratings-now-on-finviz-charts',
+              this.href,
+            )
+          "
+          >Learn More</a
+        >
+        \n
+        <a
+          title="Close"
+          class="flex h-6 w-6 items-center justify-center"
+          style="filter: drop-shadow(0.5px 0.5px 0px rgba(34, 38, 47, 0.8))"
+          href="javascript:void(0)"
+          onclick="
+            window.FinvizCloseNotice(
+              'promo-analyst-ratings-now-on-finviz-charts',
+            )
+          "
+        >
+          \n
+          <svg width="20" height="20" class="shrink-0">
+            \n
+            <use href="/assets/dist-icons/icons.svg?rev=4077308128#clear" />
+            \n
+          </svg>
+          \n
+        </a>
+        \n
+      </div>
+      \n
+    </div>
+    <div class="content">
+      <div class="fv-container">
+        <h2 style="text-align: center; margin: 50px 0; font-size: 21px">
+          Page not found.
+        </h2>
+        \n
+      </div>
+    </div>
+    \n
+    <div class="footer" style="margin-top: 50px; padding-bottom: 215px">
+      \n
+      <div class="footer_links">
+        \n <a class="tab-link" href="/affiliate.ashx">Affiliate</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="/advertise.ashx">Advertise</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="/careers">Careers</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="/contact.ashx">Contact</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="/blog">Blog</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="/help/screener.ashx">Help</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="/privacy.ashx">Privacy</a> \n
+        <span class="footer_dot"> • </span> \n
+        <a class="tab-link" href="https://x.com/finviz_com" target="_blank"
+          >Follow us on X</a
+        >
+      </div>
+      \n Quotes delayed 15 minutes for NASDAQ, NYSE and AMEX. \n <br />
+      \n Copyright © 2007-2026 Finviz.com. All Rights Reserved. \n \n
+    </div>
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-537M973G"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <script>
+      \n      function getSystemTheme() {
+      \n        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      \n          return 'Dark';
+      \n        }
+      \n        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      \n          return 'Light';
+      \n        }
+      \n        return 'No Preference';
+      \n      }
+      \n
+      \n      var systemTheme = getSystemTheme()
+      \n
+      \n      const headlessChrome = navigator.userAgent.includes('HeadlessChrome')
+      \n      const webdriver = navigator.webdriver === true
+      \n
+      \n      dataLayer.push({
+      \n            event: 'ga_context',
+      \n
+      \n            dimension1: 'NotLoggedIn',
+      \n            dimension3: window.devicePixelRatio,
+      \n            layoutTheme: 'dark',
+      \n            systemTheme: systemTheme,
+      \n            bundle: 'modern',
+      \n            prefTheme: 'dark',
+      \n            themeFlag: 'modern',
+      \n            innerWidth: window.innerWidth,
+      \n            innerHeight: window.innerHeight,
+      \n            webdriver: webdriver,
+      \n            isBot: headlessChrome || webdriver,
+      \n            icAdsVariant: 'control'
+      \n          });
+      \n
+      \n
+    </script>
+    <script type="text/javascript">
+      \n        window._qevents = window._qevents || [];
+      \n
+      \n        (function() {
+      \n            var elem = document.createElement('script');
+      \n            elem.src = (document.location.protocol == "https:" ? "https://secure" : "http://edge") + ".quantserve.com/quant.js";
+      \n            elem.async = true;
+      \n            elem.type = "text/javascript";
+      \n            var scpt = document.getElementsByTagName('script')[0];
+      \n            scpt.parentNode.insertBefore(elem, scpt);
+      \n        })();
+      \n
+      \n        window._qevents.push({
+      \n            qacct:"p-c2W8esUZ6Q8oA"
+      \n        });
+      \n
+    </script>
+    \n
+    <noscript>
+      \n
+      <div style="display: none">
+        \n
+        <img
+          src="//pixel.quantserve.com/pixel/p-c2W8esUZ6Q8oA.gif"
+          border="0"
+          height="1"
+          width="1"
+          alt="Quantcast"
+        />
+        \n
+      </div>
+      \n
+    </noscript>
+    <div
+      id="IC_D_1x1_1"
+      class="relative overflow-hidden flex items-center justify-center w-full mx-auto"
+    ></div>
+    <div id="modal-elite-ad" class="modal-elite-ad">
+      \n
+      <div id="modal-elite-ad_content" class="modal-elite-ad_content">
+        \n
+        <button
+          id="modal-elite-ad-close"
+          type="button"
+          class="modal-elite-ad_close"
+        >
+          ×
+        </button>
+        \n \n
+        <!--<div id="modal-elite-ad-content-0" style="display: none">
+\n			                        <h2>Ever heard of Finviz*Elite?</h2>
+\n                                    <p>
+\n                                        Our premium service offers you real-time quotes, advanced visualizations, technical studies, and much more.<br>
+\n                                        Become Elite and make informed financial decisions.
+\n                                    </p>
+\n                                    <a href="/elite?utm_source=finviz&utm_medium=banner&utm_campaign=modal-0" id="modal-elite-ad-btn-0" class="" target="_blank">Find out more</a>
+\n                                </div>-->
+        \n \n
+        <div id="modal-elite-ad-content-1" style="display: block">
+          \n
+          <h2>Upgrade your FINVIZ experience</h2>
+          \n
+          <p>
+            \n Join thousands of traders who make more informed decisions
+            with&nbsp;our&nbsp;premium features. \n Real-time quotes,
+            advanced&nbsp;visualizations, backtesting, and much more. \n
+          </p>
+          \n
+          <a
+            href="/elite?utm_source=finviz&utm_medium=banner&utm_campaign=modal-1"
+            id="modal-elite-ad-btn-1"
+            class="modal-elite_button"
+            target="_blank"
+            >Learn more about FINVIZ*Elite</a
+          >
+          \n
+        </div>
+        \n
+      </div>
+      \n
+    </div>
+    <script src="/assets/dist/script/pv.v1.b5e0f9bc.js" async></script>
+    <script defer>
+      window.renderScriptNotLoaded();
+    </script>
+    \n
+    <script
+      src="/assets/dist/4417.v1.0a338e63.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/8014.v1.87350716.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/3097.v1.d90ca904.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/3270.v1.ffdc75de.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      src="/assets/dist/elite_features_dialog.v1.1354ab21.js"
+      onerror="window.handleScriptNotLoaded(this)"
+    ></script>
+    <script
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+      integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
+      data-cf-beacon='{"version":"2024.11.0","token":"e53f08f6c9e04bfd9760701085ec93b4","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
+      crossorigin="anonymous"
+    ></script>
+    \n
+  </body>
+  \n
+</html>
+\n

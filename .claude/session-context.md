@@ -1,92 +1,132 @@
-# Contexto de sesión - Stock Screener Automatizado
+# Resumen Compactado: Stock Screener Automatizado
 
-## Qué se estaba construyendo
+## Proyecto
 
-Workflow n8n para screening automático de acciones financieras.
+- **Nombre**: StockScreenerAutomatizado-Conservador
+- **Ruta**: D:\inside-projects\n8n-workflows
+- **URL n8n**: <http://localhost:5678>
+- **Workflow**: FLOW-stock-screener-v4-RSI-COMPLETO (ID: aRJpQ33RYDAzppia)
 
-- Proyecto: `StockScreenerAutomatizado-Conservador`
-- Ruta: `D:\inside-projects\n8n-workflows`
-- El workflow lee tickers desde Google Sheets, consulta APIs financieras, calcula scores y escribe resultados en Google Sheets separando en conservadores/arriesgados y señales de compra.
+## Estado Actual
 
-## Nodos del workflow (22 en total)
-
-- **Manual Trigger** / **Schedule Weekly Monday 8AM** → triggers
-- **Read Watchlist** → lee tickers desde Google Sheets (lee bien los 8 tickers)
-- **FMP Profile** → API Financial Modeling Prep (recibe 8 pero solo devuelve 7 - BUG PENDIENTE)
-- **FMP Ratios** → API FMP
-- **FMP Metrics** → API FMP (a veces devuelve `{}` vacíos)
-- **Enrich with Ticker** → nodo Code, marca `_fmpFailed: true` cuando FMP falla
-- **FMP Fallo?** → IF que separa tickers con datos vs fallidos
-- **Alpha Vantage RSI** → API RSI (límite 25 req/día en plan gratuito, solo devuelve 4 items)
-- **Check RSI** → nodo Code
-- **Finviz RSI Scrape** / **Finviz RSI Extract** → fallback de RSI cuando Alpha Vantage falla
-- **Finviz Scrape** / **Finviz Extract** → fallback de datos cuando FMP falla
-- **Score FMP** → nodo Code principal (tenía bugs críticos)
-- **Score Finviz** → nodo Code para tickers que fallaron en FMP (tenía bugs críticos)
-- **Paso Filtro?** / **Is Conservador?** / **Is Buy Signal?** → IFs de clasificación
-- **Write Conservador** / **Write Arriesgado** / **Write Señales** → escribe en Google Sheets
-
-## Problemas resueltos
-
-- FMP Metrics devolvía `{}` → se agregó detección con `_fmpFailed` y fallback a Finviz
-- Tickers duplicados en el sheet → Score FMP y Score Finviz procesaban todos los tickers sin filtrar
-- Datos cruzados (PFE mostraba "The Coca-Cola Company") → causa: lookup por índice de posición en vez de por ticker
-- Score FMP y Score Finviz usaban lookup por posición → reemplazado por función `findByTicker()` que busca por `symbol`/`Ticker`/`_ticker`
-- "Cannot return primitive values directly" → nodos Code ahora devuelven siempre `[{json:{...}}]`
-- Brackets desbalanceados en jsCode → corregidos
-
-## Bugs pendientes al cortar la sesión
-
-1. **FMP Profile pierde 1 ticker**: recibe 8, devuelve 7. Causa desconocida, no investigada.
-2. **Alpha Vantage RSI alcanza límite**: solo devuelve 4 items (mensaje de rate limit del plan gratuito). Los 4 tickers restantes quedan sin RSI en el sheet.
-3. **Tickers sin Sector ni RSI en el sheet**: relacionado con el bug de Alpha Vantage.
-4. **Validación del workflow seguía fallando** al cortar la sesión por context overflow.
-
-## Por qué se cortó la sesión
-
-El modelo alcanzó el límite de contexto ("prompt too long; exceeded max context length"). La sesión terminó sin resolver los bugs pendientes.
-
-## Estado del archivo JSON
-
-El workflow fue modificado múltiples veces durante la sesión. El último estado guardado es `FLOW-stock-screener-v4-RSI-COMPLETO.json` pero puede no reflejar los últimos cambios aplicados antes del corte.
-
-## Próximos pasos
-
-1. Validar el workflow actual con `n8n_validate_workflow`
-2. Investigar por qué FMP Profile pierde 1 ticker
-3. Resolver el fallback de RSI cuando Alpha Vantage falla por rate limit (usar Finviz RSI para todos)
-4. Confirmar que Score FMP usa `findByTicker()` y no lookup por posición
-5. Verificar que los datos en el sheet son correctos (empresa, sector, RSI) para todos los tickers
-
-
----
-## Sesion 2026-02-21 21:05
-## Resumen de Sesión de Trabajo
-
-### Que se estaba construyendo:
-- **Stock Screener automatizado** con n8n (basado en resúmenes de sesiones previas)
-- Integración con APIs de mercado financiero (FMP Profile, Alpha Vantage)
-- Hoja de cálculo con datos de acciones
-
-### Que esta completado:
-- Nada significativo en esta sesión
-- El asistente identificó el problema de conexión con n8n
-
-### Que falta hacer:
-- **Iniciar n8n** en la máquina local (`http://localhost:5678`)
-- Validar el workflow actual de stock screener
-- Investigar bugs pendientes:
-  - FMP Profile pierde 1 ticker
-  - Alpha Vantage rate limit
-- Verificar datos en la hoja de cálculo
-
-### Decisiones tecnicas importantes:
-- Se requiere que n8n esté ejecutándose y con la API habilitada para continuar con el desarrollo
-
-### Archivos y rutas clave:
-- Directorio de trabajo: `D:\inside-projects\n8n-workflows`
-- Puerto de n8n: `localhost:5678`
+- **n8n**: Corriendo y conectado
+- **Workflow**: Parcialmente funcional con errores pendientes
+- **Tickers**: 8 en watchlist (BABA, QCOM, ATT, PFE, KO, MCD, NKE, DEO)
+- **Resultado**: Solo 5-7 tickers se procesan correctamente
 
 ---
 
-**Nota:** La sesión fue muy corta (se solicitó exit inmediatamente después de recibir la notificación del problema). No se tomaron decisiones técnicas adicionales.
+## Decisiones Técnicas Implementadas
+
+| Problema | Solución |
+|----------|----------|
+| FMP Metrics devolvía '{}' | Detección con '_fmpFailed' + fallback a Finviz |
+| Datos cruzados (PFE → Coca-Cola) | Reemplazado lookup por índice → función findByTicker() |
+| "Cannot return primitive values" | Nodos Code ahora devuelven '[{json:{...}}]' |
+| Brackets desbalanceados | Corregidos en Score FMP y Score Finviz |
+
+---
+
+## Bugs Pendientes
+
+### Críticos
+
+1. **FMP Profile pierde 1 ticker** — Recibe 8, devuelve 7 (causa desconocida)
+2. **Alpha Vantage RSI rate limit** — Solo devuelve 4-5 items (límite plan gratuito)
+3. **403/429 en Finviz** — IP bloqueada o rate limit alcanzado
+
+### Pendientes de Investigación
+
+- Por qué 3 tickers (KO, QCOM, NKE, MCD, DEO) no llegan al nodo final
+- Sospecha: batchSize: 5 en FMP Profile
+- Error "No property named data exists" en nodo Extract de Finviz
+
+---
+
+## Archivos Clave
+
+- **Workflow JSON**: FLOW-stock-screener-v4-RSI-COMPLETO.json
+- **Última ejecución**: ID 2020
+- **Google Sheets**: Watchlist (8 tickers) + resultados
+
+---
+
+## Próximos Pasos
+
+1. Investigar pérdida de ticker en FMP Profile
+2. Implementar fallback completo de RSI (Finviz para todos)
+3. Resolver errores 403/429 de Finviz (cambiar IP o esperar)
+4. Validar workflow con n8n_validate_workflow
+5. Verificar datos finales en sheet (empresa, sector, RSI)
+
+---
+
+## Sesion 2026-02-23 18:34
+
+## Que se estaba construyendo
+
+Sistema de scraping de datos de acciones (RSI, Sector) desde Finviz para un workflow de n8n que procesa 8 tickers.
+
+## Que esta completado
+
+- Workflow con 8 tickers siendo procesados
+- Se agregó código para preservar el ticker en el flujo
+
+## Que falta hacer
+
+- Resolver el error 403 de Finviz que está bloqueando el scraping
+- Obtener datos de RSI y Sector que no llegan
+
+## Decisiones tecnicas importantes
+
+- Finviz está retornando 403 (bloqueo)
+- El usuario verificó que una request GET simple '<https://finviz.com/quote.ashx?t=BABA&ty=c&ta=1&p=d>' sin headers debería funcionar
+- Se elimino toda dependencia a las APIs, solo scrapping
+
+## Archivos y rutas clave
+
+- Nodo Finviz Scrape en n8n
+- Nodo Finviz Extract
+- Nodo Score
+
+---
+
+## Sesion 2026-02-23 20:48
+
+## Que se estaba construyendo
+
+Un workflow de n8n para hacer scraping de datos financieros de Finviz (tablas con datos de acciones). El objetivo era obtener los datos de la tabla deFinviz para procesarlos posteriormente.
+
+## Que esta completado
+
+- Se identificó que el problema principal es Cloudflare bloqueando las requests automatizadas
+- Se probó HTTP Request con headers personalizados (no funcionó)
+- Se intentó usar Code node con $helpers.httpRequest() pero falló porque $helpers no está definido
+- Se creó el workflow de prueba TEST-Finviz-JinaAI usando Jina.ai como alternativa
+
+## Que falta hacer
+
+- Obtener los datos de Finviz de forma confiable
+- El bloqueo de Jina.ai dura hasta ~00:14 GMT del 24 feb 2026
+- Opciones pendientes: esperar, usar FMP (Financial Modeling Prep), o configurar Airtop
+
+## Decisiones tecnicas importantes
+
+- Cloudflare bloquea requests automatizadas desde la IP de n8n
+- Jina.ai también fue bloqueado por "abuuso detectado" (DDoS sospechoso)
+- Se identificó Airtop como la solución más robusta pero requiere credencial
+- Se mencionó FMP como alternativa ya configurada previamente
+
+## Archivos y rutas clave
+
+- Workflow de prueba: TEST-Finviz-JinaAI (ID: Pe6yJGYXtXIvk4RA)
+- UI de n8n: <http://localhost:5678>
+- Endpoint Jina.ai: <https://r.jina.ai/{URL}>
+
+## Bugs pendientes
+
+- Cloudflare bloqueando Finviz
+- Jina.ai bloqueado por abuso hasta Tue Feb 24 2026 00:14:40 GMT+0000
+- $helpers no disponible en Code node de n8n
+
+---

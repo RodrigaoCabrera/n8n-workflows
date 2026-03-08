@@ -33,15 +33,18 @@ Este proyecto permite la creación de agentes de IA y flujos de trabajo en n8n u
 Configuración completa en `.mcp.json` con acceso a todas las funcionalidades:
 
 **Herramientas de Descubrimiento de Nodos:**
+
 - `search_nodes` - Buscar nodos por keyword
 - `get_node` - Info de nodo (niveles: minimal, standard, full)
 
 **Herramientas de Validación:**
+
 - `validate_node` - Validar configuración de nodo
 - `validate_workflow` - Validar workflow completo
 - `n8n_autofix_workflow` - Auto-corrección de errores
 
 **Gestión de Workflows:**
+
 - `n8n_create_workflow` - Crear workflows
 - `n8n_update_partial_workflow` - Actualizaciones incrementales
 - `n8n_validate_workflow` - Validar por ID
@@ -51,10 +54,12 @@ Configuración completa en `.mcp.json` con acceso a todas las funcionalidades:
 - `n8n_executions` - Gestionar ejecuciones
 
 **Templates:**
+
 - `search_templates` - Buscar templates (keyword, by_nodes, by_task)
 - `get_template` - Obtener detalles de template
 
 **Documentación:**
+
 - `tools_documentation` - Meta-documentación de herramientas
 - `ai_agents_guide` - Guía para workflows de agentes IA
 
@@ -67,6 +72,7 @@ Configuración completa en `.mcp.json` con acceso a todas las funcionalidades:
 ```
 
 Categorías:
+
 - `AGENT` - Agentes de IA autónomos
 - `FLOW` - Flujos de automatización
 - `UTIL` - Utilidades reutilizables
@@ -140,6 +146,7 @@ Todo workflow debe seguir esta estructura base:
 > se DEBE ejecutar `n8n_list_workflows()` o `n8n_health_check()` para confirmar que el MCP responde correctamente.
 >
 > **SI EL MCP NO RESPONDE O DA ERROR DE AUTENTICACIÓN:**
+>
 > 1. **ABORTAR INMEDIATAMENTE** toda ejecución
 > 2. **NO usar alternativas** (NO usar curl, NO usar Bash, NO usar nada que no sea MCP)
 > 3. **INFORMAR AL USUARIO** que el MCP no está disponible
@@ -148,14 +155,16 @@ Todo workflow debe seguir esta estructura base:
 >
 > **PROCEDIMIENTO DE CONFIGURACIÓN DEL MCP (Primera vez o reconexión):**
 >
-> **⚠️ IMPORTANTE: Este comando SOLO funciona desde Git Bash, NO desde PowerShell**
+> **⚠️ IMPORTANTE: Este comando SOLO funciona desde Git Bash, NO desde PowerShell.**
 >
-> **Comando único definitivo (ejecutar desde Git Bash):**
+> **Comando único definitivo (ejecutar desde Git Bash. SOLICITAR APIKEY AL USUARIO ANTES DE EJECUTAR EL COMANDO):**
+>
 > ```bash
-> cd /d/inside-projects/n8n-workflows && claude mcp add --scope local --transport stdio n8n-mcp --env MCP_MODE=stdio --env LOG_LEVEL=error --env DISABLE_CONSOLE_OUTPUT=true --env N8N_API_URL=http://localhost:5678 --env N8N_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyYzljZmYyYS00Njg5LTRkYjctYTJjMi0xYmFiOGJkODQ5YTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiMDRhNDU4YWMtNjU5YS00MThjLWFkNTktMDRiOWFjMzJhNmYyIiwiaWF0IjoxNzcxMjc3MDc4LCJleHAiOjE3NzM4MDY0MDB9.RXyN4BnFGbEJ9HFiHW3LcfZKH6RV92shlq5Sq7QjWPo -- npx -y n8n-mcp
+> cd /d/inside-projects/n8n-workflows && claude mcp add --scope local --transport stdio n8n-mcp --env MCP_MODE=stdio --env LOG_LEVEL=error --env DISABLE_CONSOLE_OUTPUT=true --env N8N_API_URL=http://localhost:5678 --env N8N_API_KEY=apikey -- npx -y n8n-mcp
 > ```
 >
 > **Verificar instalación:**
+>
 > ```bash
 > claude mcp list
 > # Debe mostrar: n8n-mcp: npx -y n8n-mcp - ✓ Connected
@@ -165,6 +174,7 @@ Todo workflow debe seguir esta estructura base:
 > ```
 >
 > **Detalles técnicos del comando:**
+>
 > - `--scope local`: MCP solo para este proyecto (recomendado)
 > - `--transport stdio`: Protocolo de comunicación estándar I/O
 > - `--env VAR=valor`: Cada variable de entorno debe pasarse por separado
@@ -172,10 +182,12 @@ Todo workflow debe seguir esta estructura base:
 > - `-y` en npx: Evita preguntas interactivas
 >
 > **Ubicación del archivo de configuración:**
+>
 > - El comando crea/modifica: `C:\Users\RodrigoCabrera\.claude.json`
 > - Este archivo es local al proyecto y persiste entre reinicios
 >
 > **Por qué NO funciona en PowerShell:**
+>
 > - PowerShell interpreta los argumentos `--env` de forma diferente
 > - Corta las líneas largas incorrectamente
 > - Solo Git Bash (que viene con Claude Code) maneja correctamente la sintaxis
@@ -198,6 +210,7 @@ Todo workflow debe seguir esta estructura base:
    - **NO responder sobre n8n basándose en conocimiento propio** → SIEMPRE consultar el skill primero
    - Los skills son para DOCUMENTACIÓN (cómo funcionan los nodos, sintaxis, patrones)
    - **Skills disponibles y cuándo usarlos**:
+
      | Skill | Usar cuando... |
      |-------|---------------|
      | `n8n-expression-syntax` | Se escriban expresiones `{{}}`, se acceda a `$json/$node` |
@@ -215,6 +228,7 @@ Todo workflow debe seguir esta estructura base:
    - Si no se sabe algo → BUSCAR EN SKILLS/MCP, no inventar
 
 4. **Flujo obligatorio de trabajo**:
+
    ```
    1. Verificar MCP funciona (health_check o list_workflows)
    2. Consultar SKILL para entender el patrón/arquitectura
@@ -225,6 +239,7 @@ Todo workflow debe seguir esta estructura base:
    ```
 
 5. **Separación de responsabilidades**:
+
    | Herramienta | Propósito | Ejemplo |
    |-------------|-----------|---------|
    | **SKILL** | Documentación, patrones, sintaxis | "¿Cómo hacer HTTP requests?" → Leer skill |
@@ -268,21 +283,25 @@ Los workflows se generan en formato JSON compatible con n8n:
 ## Comandos de Interacción
 
 ### Crear Workflow
+
 ```
 Crea un workflow que [descripción del objetivo]
 ```
 
 ### Modificar Workflow
+
 ```
 Modifica el workflow [nombre] para [cambios requeridos]
 ```
 
 ### Explicar Workflow
+
 ```
 Explica el workflow [nombre] o [pegar JSON]
 ```
 
 ### Optimizar Workflow
+
 ```
 Optimiza el workflow [nombre] para [objetivo: rendimiento/legibilidad/etc]
 ```
@@ -290,24 +309,28 @@ Optimiza el workflow [nombre] para [objetivo: rendimiento/legibilidad/etc]
 ## Nodos Comunes
 
 ### Triggers
+
 - `n8n-nodes-base.webhook` - HTTP webhook
 - `n8n-nodes-base.scheduleTrigger` - Programación temporal
 - `n8n-nodes-base.manualTrigger` - Ejecución manual
 - `n8n-nodes-base.emailTrigger` - Trigger por email
 
 ### AI/LLM
+
 - `@n8n/n8n-nodes-langchain.agent` - Agente LangChain
 - `@n8n/n8n-nodes-langchain.chainLlm` - Cadena LLM
 - `@n8n/n8n-nodes-langchain.openAi` - OpenAI directo
 - `@n8n/n8n-nodes-langchain.anthropic` - Anthropic/Claude
 
 ### Lógica
+
 - `n8n-nodes-base.if` - Condicional
 - `n8n-nodes-base.switch` - Switch múltiple
 - `n8n-nodes-base.merge` - Combinar datos
 - `n8n-nodes-base.splitInBatches` - Procesamiento por lotes
 
 ### Datos
+
 - `n8n-nodes-base.set` - Establecer valores
 - `n8n-nodes-base.code` - JavaScript/Python personalizado
 - `n8n-nodes-base.httpRequest` - Llamadas HTTP
@@ -316,16 +339,19 @@ Optimiza el workflow [nombre] para [objetivo: rendimiento/legibilidad/etc]
 ## Mejores Prácticas
 
 ### Rendimiento
+
 - Usar `splitInBatches` para grandes volúmenes
 - Implementar caching cuando sea posible
 - Minimizar llamadas a APIs externas
 
 ### Seguridad
+
 - Nunca exponer credenciales en logs
 - Validar inputs en webhooks públicos
 - Usar autenticación en webhooks cuando sea posible
 
 ### Mantenibilidad
+
 - Nombres descriptivos en nodos
 - Agrupar nodos relacionados con sticky notes
 - Versionar cambios significativos
@@ -371,7 +397,7 @@ n8n-workflows/
 
 ## Errores Comunes a Evitar
 
-### Errores que NO se deben cometer:
+### Errores que NO se deben cometer
 
 | Error | Por qué está mal | Solución correcta |
 |-------|------------------|-------------------|
@@ -415,6 +441,7 @@ n8n-workflows/
 Este documento es el punto central de referencia para la generación de workflows. Debe mantenerse actualizado conforme se agreguen nuevas capacidades, patrones o convenciones al proyecto.
 
 ### Fuentes de Skills
-- Repositorio: https://github.com/czlonkowski/n8n-skills
-- MCP Server: https://github.com/czlonkowski/n8n-mcp
-- Créditos: Conceived by Romuald Członkowski - www.aiadvisors.pl/en
+
+- Repositorio: <https://github.com/czlonkowski/n8n-skills>
+- MCP Server: <https://github.com/czlonkowski/n8n-mcp>
+- Créditos: Conceived by Romuald Członkowski - <www.aiadvisors.pl/en>
