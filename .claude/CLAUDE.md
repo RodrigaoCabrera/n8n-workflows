@@ -2,131 +2,146 @@
 
 ## Objetivo
 
-Workflow n8n que automatiza la selección de acciones para inversión, generando 20 recomendaciones diarias (10 conservador + 10 arriesgado) en Google Sheets.
-
-## Estrategia de Inversión (5 Pasos)
-
-### Paso 1: FILTRAR (≈Finviz)
-
-- **API**: Financial Modeling Prep `/stock-screener`
-- **Filtros**:
-  - P/E Ratio < 40
-  - EPS Growth > 30%
-  - Net Profit Margin > 0%
-  - ROE > 5%
-  - Exchange: NYSE, NASDAQ
-  - Market Cap > $500M
-
-### Paso 2: COMPARAR (≈Google Finance)
-
-- **API**: FMP `/profile/{symbol}` + `/ratios/{symbol}`
-- **Métricas**: Net Income, EPS, Beta, Sector, Market Cap
-- Comparar rentabilidad entre empresas candidatas
-
-### Paso 3: MOMENTO DE COMPRA (≈TradingView)
-
-- **API**: Alpha Vantage RSI + SMA
-- **Señales**:
-  - RSI < 30 = Sobreventa (oportunidad)
-  - RSI > 70 = Sobrecompra (cuidado)
-  - SMA50 > SMA200 = Tendencia alcista
-
-### Paso 4: EXPECTATIVAS (≈SeekingAlpha)
-
-- **API**: FMP `/stock_news?tickers={symbol}`
-- Analizar últimas 5 noticias
-- Clasificar: Positivo / Negativo / Neutral
-
-### Paso 5: CONFIRMAR CON LOS GRANDES (≈Dataroma)
-
-- **API**: FMP `/institutional-holder/{symbol}`
-- Verificar presencia en portfolios de superinversores
-- Buffett, Ackman, Icahn, Soros, etc.
-- Bonus: +20 puntos si está en portfolio de superinversor
-
-## Perfiles de Riesgo
-
-### Conservador (Tab 1 - 10 acciones)
-
-| Criterio | Valor |
-|----------|-------|
-| Market Cap | > $10B (Large Cap) |
-| Beta | < 1.0 |
-| Dividend Yield | > 0% (preferible) |
-| RSI | 30-65 |
-
-### Arriesgado (Tab 2 - 10 acciones)
-
-| Criterio | Valor |
-|----------|-------|
-| Market Cap | $500M - $50B |
-| Beta | >= 1.0 |
-| EPS Growth | > 40% |
-| RSI | Cualquiera |
-
-## Sistema de Scoring (0-100)
-
-- Fundamentales: 30%
-- Técnico: 25%
-- Sentimiento: 25%
-- Superinversores: 20%
-
-## APIs Requeridas
-
-### Financial Modeling Prep
-
-- **URL**: <https://site.financialmodelingprep.com/>
-- **Límite**: 250 calls/día gratis
-- **API Key**: `WzqQBQScYqY4OgaCUZwa5re5NBWVyyBK`
-- **Endpoints usados**:
-  - `/stable/profile?symbol=XXX` - Datos básicos, precio, beta, marketCap
-  - `/stable/ratios-ttm?symbol=XXX` - P/E, margins, EPS
-  - `/stable/key-metrics-ttm?symbol=XXX` - ROE
-
-### Alpha Vantage
-
-- **URL**: <https://www.alphavantage.co/>
-- **Límite**: 25 calls/día gratis
-- **API Key**: `42J2QW442HR440NZ`
-- **Endpoints usados**:
-  - `RSI` - Relative Strength Index
-  - `SMA` - Simple Moving Average
-
-### Google Sheets
-
-- **Document ID**: `1j7ROJwahx68pOOq4XfTNY1r71Q-feR7jbYNPqjwk4wg`
-- **Tabs**: Conservador, Arriesgado, Historial
-
-## Output
-
-- Google Sheets con 3 tabs: `Conservador`, `Arriesgado`, `Historial`
-- Ejecución: Diaria 8AM (lunes-viernes) + Manual on-demand
-- Creacion de header de sheet automaticamente. El sheet inicialmete estara vacio
+Workflow n8n que automatiza la selección de acciones para inversión desde una watchlist en Google Sheets, generando recomendaciones diarias en tabs por perfil de riesgo.
 
 ## Workflow Actual
 
 - **ID n8n**: `aRJpQ33RYDAzppia`
 - **Nombre**: `FLOW-stock-screener-v4-RSI-COMPLETO`
-- **Estado**: Funcional con estrategia completa de 5 pasos
-- **RSI**: Dual approach (Alpha Vantage API + cálculo manual con FMP histórico)
+- **Estado**: Funcional — Score v10 deployado
+- **Fuente de datos**: Finviz scraping (100% — FMP y Alpha Vantage descartados por límites)
+- **Versión Score node**: v10
 
-## Plan Detallado
+## Fuente de Datos: Finviz Scraping
 
-Ver archivo completo: `~/.claude/plans/luminous-puzzling-ritchie.md`
+- **URL**: `https://finviz.com/quote.ashx?t={TICKER}&ty=c&ta=1&p=d`
+- **Método**: HTTP Request con User-Agent de navegador + parsing HTML en Code node
+- **Delay**: 2 segundos entre requests (batchSize: 1, batchInterval: 2000) para evitar rate limit
+- **Extracción**: Función `getMetric(html, label)` busca `>LABEL</td>` y extrae el `<b>`
+- **Caso especial Dividend**: Label está dentro de `<a>`, usar `getMetricLinked(html, 'Dividend TTM')`
+- **Formato dividendo**: `1.72 (6.36%)` — extraer el % entre paréntesis
 
-## Pendiente: Scraping como fallback a APIs con límite
+### Campos que extrae Finviz
 
-### Problema
+| Campo | Label en HTML |
+|-------|--------------|
+| P/E | `P/E` |
+| EPS next Y (crecimiento) | `EPS next Y` |
+| ROE | `ROE` |
+| Profit Margin | `Profit Margin` |
+| Beta | `Beta` |
+| Market Cap | `Market Cap` |
+| RSI | `RSI (14)` |
+| Precio | `Price` |
+| 52W High | `52W High` |
+| Dividend | `Dividend TTM` (dentro de `<a>`) |
 
-- FMP tiene límite de 250 calls/día (plan gratis), cuando se alcanza retorna "Limit Reach"
-- Alpha Vantage tiene límite de 25 calls/día
-- Yahoo Finance cerró sus APIs no-oficiales (retorna 401)
+### Variantes HTML de valores en Finviz
 
-### Solución aprobada: Opción 3 - Híbrida
+```html
+<!-- Valor simple -->
+<b>33.69</b>
 
-- **Fuente principal**: APIs de FMP + Alpha Vantage
-- **Fallback scraping**: Finviz (`https://finviz.com/quote.ashx?t=TICKER`)
-- **Método**: HTTP Request (con User-Agent navegador) + HTML Extract (CSS selectors)
-- **Datos en Finviz**: PE, EPS, ROE, Profit Margin, Beta, Market Cap, RSI, 52w High/Low, SMA20/50/200
-- **Nodos n8n**: Solo core (HTTP Request + HTML Extract), NO community nodes
-- **Estado**: Pendiente de implementación - probar primero que Finviz responde desde n8n
+<!-- Valor con color (ej. RSI sobreventa) -->
+<b><span class="color-text is-positive">21.46</span></b>
+
+<!-- Dividend con yield -->
+<b>1.72 (<span class="color-text is-positive">6.36%</span>)</b>
+```
+
+El `.replace(/<[^>]+>/g, '').trim()` en `getMetric` stripea los spans y deja el texto limpio.
+
+## Estrategia de Filtrado y Scoring
+
+### Filtro Fundamental (los 5 deben cumplirse)
+
+| Criterio | Condición |
+|----------|-----------|
+| P/E | > 0 y < 40 |
+| EPS Growth (próximo año) | > 10% |
+| Profit Margin | > 0% |
+| ROE | > 5% |
+| Market Cap | > $500M |
+
+- Si **falla alguno**: `filtrado=false`, `reason` muestra el valor exacto (ej. `EPS_GROWTH=8.7% | ROE=4.2%`)
+- Si **pasa todo**: `filtrado=true`, `reason=PASSED`
+- **Señales solo para tickers que pasan el filtro fundamental**
+
+### Perfiles de Riesgo (solo aplica a filtrados=true)
+
+| Perfil | Condición |
+|--------|-----------|
+| **Conservador** | MarketCap > 10B AND Beta < 1.0 AND DividendYield > 0% |
+| **Arriesgado** | Beta >= 1.15 AND EPSGrowth > 20% |
+| **Balanceado** | Todo lo demás que pasa el filtro |
+
+### Señal de Compra (solo para filtrados=true)
+
+| RSI | Señal |
+|-----|-------|
+| < 30 y Score > 60 | COMPRA FUERTE |
+| < 40 | COMPRA |
+| 40–70 | NEUTRAL |
+| > 70 | ESPERAR |
+| N/A | SIN RSI |
+
+### Scoring (ScoreFund + ScoreTec = Score total)
+
+**ScoreFund (0-30):**
+- PE: <15→10pts, <25→7pts, <40→5pts
+- ROE: >20%→10pts, >10%→7pts, >5%→3pts
+- ProfitMargin: >20%→10pts, >10%→7pts, >0%→3pts
+
+**ScoreTec (0-25):**
+- RSI <30→18pts, <40→15pts, <60→10pts, <70→5pts
+- Dist52wHigh >20%→+7pts, <5%→-5pts
+
+## Google Sheets
+
+- **Document ID**: `1j7ROJwahx68pOOq4XfTNY1r71Q-feR7jbYNPqjwk4wg`
+- **Tabs**: Watchlist, Historial, Conservador, Arriesgado, Balanceado, Señales
+
+### Columnas del Sheet (todas necesarias)
+
+```
+Fecha | Ticker | Empresa | Sector | Precio | PE | ROE | ProfitMargin | MarketCap |
+Beta | DividendYield | EPSGrowth | RSI | Dist52wHigh | DataSource |
+filtrado | reason | Sentimiento | Senal | Score | ScoreFund | ScoreTec | Perfil
+```
+
+**Columnas eliminadas** (eran debug/inutiles): `RSI_Raw`, `RSI_Source`, `EPS`, `Income`, `Ranking`, `FundamentalScore`, `ScoreSent`, `ScoreSuper`, `TieneSuper`
+
+**Nota**: `Sentimiento` está reservado para futura integración de análisis de noticias — actualmente siempre vale `NEUTRAL`.
+
+## Arquitectura del Workflow (14 nodos)
+
+```
+Manual Trigger ─┐
+                ├─→ Read Watchlist → Finviz Scrape → Score → Ranking Fundamentals
+Schedule ───────┘                                               ↓
+                                                         Write Historial
+                                                               ↓
+                                                         Paso Filtro? (filtrado==true)
+                                                           ↓ TRUE
+                                                         Switch Profile
+                                                        ↙    ↓    ↘
+                                              Conservador  Arriesgado  Balanceado
+                                                        ↘    ↓    ↙
+                                                         If Buy Signal
+                                                               ↓ TRUE
+                                                         Write Señales
+```
+
+**Importante**: El branch FALSE de "Paso Filtro?" NO está conectado a nada — los tickers filtrados no van a Señales.
+
+## Lecciones Técnicas Clave
+
+1. **`}}` crashea el frontend de n8n** — Usar `Object.assign({}, base, extra)` en lugar de spread `{...base, ...extra}` dentro de `results.push({json: ...})`
+
+2. **Finviz: label Dividend dentro de `<a>`** — Requiere `getMetricLinked` que busca `>LABEL</a>` en vez de `>LABEL</td>`
+
+3. **RSI con `$` en algunos tickers** — Ocurre cuando `getMetric` encuentra un `<b>` de precio antes que el de RSI. Fix: parsear siempre con `parseNum` que stripea `$`, y usar `safeRSI` que valida rango 0-100.
+
+4. **Switch Profile `fallbackOutput`** — En n8n 2.36.1 debe ser `"none"` dentro de `options`, no un número.
+
+5. **`addConnection` en IF nodes** — Usar `branch: "true"/"false"` (no `sourceIndex`).
