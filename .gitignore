@@ -1,3 +1,5 @@
 # Archivo problemático de Windows (nombre de dispositivo reservado)
 nul
 .env
+cert.pem
+key.pem
