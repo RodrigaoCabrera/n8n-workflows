@@ -1,0 +1,436 @@
+{
+  "name": "Factura - Arca Export",
+  "nodes": [
+    {
+      "id": "node-0001",
+      "name": "Formulario Factura",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [-1760, 300],
+      "webhookId": "arca-invoice-form-v2",
+      "parameters": {
+        "formTitle": "Factura de Exportacion - ARCA",
+        "formDescription": "Complete los datos para emitir una Factura E (tipo 19). Montos en USD.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "client_name",
+              "placeholder": "Nombre del cliente o empresa",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "client_tax_id",
+              "placeholder": "ID fiscal / tax ID del cliente",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "client_address",
+              "placeholder": "Domicilio completo del cliente",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "client_country",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  { "option": "ESTADOS UNIDOS" },
+                  { "option": "URUGUAY" },
+                  { "option": "BRASIL" },
+                  { "option": "CHILE" },
+                  { "option": "COLOMBIA" },
+                  { "option": "MEXICO" },
+                  { "option": "ESPANA" },
+                  { "option": "CANADA" },
+                  { "option": "ALEMANIA" },
+                  { "option": "REINO UNIDO" }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "description",
+              "placeholder": "Descripcion del servicio o producto",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "amount_usd",
+              "fieldType": "number",
+              "placeholder": "Monto total en USD",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "quantity",
+              "fieldType": "number",
+              "placeholder": "Cantidad (default: 1)",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "payment_method",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  { "option": "Transferencia bancaria" },
+                  { "option": "Wire Transfer" },
+                  { "option": "Payoneer" },
+                  { "option": "Wise" },
+                  { "option": "Otro" }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0002",
+      "name": "validate_input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1540, 300],
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\n\n// Validate required fields\nconst required = ['client_name', 'client_tax_id', 'client_address', 'client_country', 'description', 'amount_usd'];\nfor (const f of required) {\n  if (!d[f] || String(d[f]).trim() === '') throw new Error('Campo requerido faltante: ' + f);\n}\n\nconst amount = parseFloat(d.amount_usd);\nconst qty = parseInt(d.quantity) || 1;\nif (isNaN(amount) || amount <= 0) throw new Error('El monto debe ser mayor a 0');\nif (qty <= 0) throw new Error('La cantidad debe ser mayor a 0');\n\n// Country → AFIP codes\nconst COUNTRIES = {\n  'ESTADOS UNIDOS': { dst: 212, cuit: 50000000016 },\n  'URUGUAY':        { dst: 225, cuit: 50000000858 },\n  'BRASIL':         { dst: 109, cuit: 50000000076 },\n  'CHILE':          { dst: 113, cuit: 50000000152 },\n  'COLOMBIA':       { dst: 117, cuit: 50000000232 },\n  'MEXICO':         { dst: 167, cuit: 50000000484 },\n  'ESPANA':         { dst: 123, cuit: 50000000131 },\n  'CANADA':         { dst: 111, cuit: 50000000101 },\n  'ALEMANIA':       { dst: 102, cuit: 50000000104 },\n  'REINO UNIDO':    { dst: 200, cuit: 50000000826 }\n};\n\nconst key = String(d.client_country).toUpperCase().trim();\nconst country = COUNTRIES[key];\nif (!country) throw new Error('Pais no soportado: ' + key + '. Opciones: ' + Object.keys(COUNTRIES).join(', '));\n\n// Generate YYYYMMDD dates\nconst pad2 = n => String(n).padStart(2, '0');\nconst toAfipDate = dt => dt.getFullYear() + pad2(dt.getMonth() + 1) + pad2(dt.getDate());\nconst now = new Date();\n\nreturn [{ json: {\n  client_name:    String(d.client_name).trim(),\n  client_tax_id:  String(d.client_tax_id).trim(),\n  client_address: String(d.client_address).trim(),\n  client_country: key,\n  dst_cmp:        country.dst,\n  cuit_pais:      country.cuit,\n  description:    String(d.description).trim(),\n  amount:         amount,\n  quantity:       qty,\n  unit_price:     amount / qty,\n  payment_method: String(d.payment_method || 'Transferencia bancaria').trim(),\n  fecha_cbte:     toAfipDate(now),\n  fecha_pago:     toAfipDate(new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000))\n}}];"
+      }
+    },
+    {
+      "id": "node-0003",
+      "name": "get_authorization",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1320, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.afipsdk.com/api/v1/afip/auth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.AFIP_SDK_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "environment", "value": "dev" },
+            { "name": "tax_id",      "value": "20400832278" },
+            { "name": "wsid",        "value": "wsfex" },
+            { "name": "cert",        "value": "={{ $env.AFIP_CERT }}" },
+            { "name": "key",         "value": "={{ $env.AFIP_KEY }}" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0004",
+      "name": "get_last_id",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1100, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.afipsdk.com/api/v1/afip/requests",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.AFIP_SDK_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"environment\": \"dev\",\n  \"method\": \"FEXGetLast_ID\",\n  \"wsid\": \"wsfex\",\n  \"params\": {\n    \"Auth\": {\n      \"Token\": \"{{ $('get_authorization').item.json.token }}\",\n      \"Sign\": \"{{ $('get_authorization').item.json.sign }}\",\n      \"Cuit\": 20400832278\n    },\n    \"PtoVta\": 2,\n    \"CbteTipo\": 19\n  }\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0005",
+      "name": "get_last_cmp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-880, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.afipsdk.com/api/v1/afip/requests",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.AFIP_SDK_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"environment\": \"dev\",\n  \"method\": \"FEXGetLast_CMP\",\n  \"wsid\": \"wsfex\",\n  \"params\": {\n    \"Auth\": {\n      \"Token\": \"{{ $('get_authorization').item.json.token }}\",\n      \"Sign\": \"{{ $('get_authorization').item.json.sign }}\",\n      \"Cuit\": 20400832278\n    },\n    \"Pto_venta\": 2,\n    \"Cbte_Tipo\": 19\n  }\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0006",
+      "name": "get_exchange_rate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-660, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.afipsdk.com/api/v1/afip/requests",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.AFIP_SDK_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"environment\": \"dev\",\n  \"method\": \"FEXGetPARAM_Ctz\",\n  \"wsid\": \"wsfex\",\n  \"params\": {\n    \"Auth\": {\n      \"Token\": \"{{ $('get_authorization').item.json.token }}\",\n      \"Sign\": \"{{ $('get_authorization').item.json.sign }}\",\n      \"Cuit\": 20400832278\n    },\n    \"Mon_id\": \"DOL\"\n  }\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0007",
+      "name": "create_voucher",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-440, 300],
+      "continueOnFail": true,
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.afipsdk.com/api/v1/afip/requests",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.AFIP_SDK_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"environment\": \"dev\",\n  \"method\": \"FEXAuthorize\",\n  \"wsid\": \"wsfex\",\n  \"params\": {\n    \"Auth\": {\n      \"Token\": \"{{ $('get_authorization').item.json.token }}\",\n      \"Sign\": \"{{ $('get_authorization').item.json.sign }}\",\n      \"Cuit\": 20400832278\n    },\n    \"Cmp\": {\n      \"Id\": {{ $('get_last_id').item.json.FEXGetLast_IDResult.FEXResultGet.Id + 1 }},\n      \"Fecha_cbte\": \"{{ $('validate_input').item.json.fecha_cbte }}\",\n      \"Cbte_Tipo\": 19,\n      \"Punto_vta\": 2,\n      \"Cbte_nro\": {{ $('get_last_cmp').item.json.FEXGetLast_CMPResult.FEXResult_LastCMP.Cbte_nro + 1 }},\n      \"Tipo_expo\": 2,\n      \"Permiso_existente\": \"\",\n      \"Dst_cmp\": {{ $('validate_input').item.json.dst_cmp }},\n      \"Cliente\": \"{{ $('validate_input').item.json.client_name }}\",\n      \"Cuit_pais_cliente\": \"{{ $('validate_input').item.json.cuit_pais }}\",\n      \"Domicilio_cliente\": \"{{ $('validate_input').item.json.client_address }}\",\n      \"Id_impositivo\": \"{{ $('validate_input').item.json.client_tax_id }}\",\n      \"Moneda_Id\": \"DOL\",\n      \"Moneda_ctz\": {{ $('get_exchange_rate').item.json.FEXGetPARAM_CtzResult.FEXResultGet.Mon_ctz }},\n      \"Imp_total\": {{ $('validate_input').item.json.amount }},\n      \"Idioma_cbte\": 1,\n      \"Forma_pago\": \"{{ $('validate_input').item.json.payment_method }}\",\n      \"Incoterms\": \"\",\n      \"Incoterms_Ds\": \"\",\n      \"Obs_comerciales\": \"{{ $('validate_input').item.json.description }}\",\n      \"Obs\": \"\",\n      \"Cmps_asoc\": [],\n      \"Fecha_pago\": \"{{ $('validate_input').item.json.fecha_pago }}\",\n      \"Items\": {\n        \"Item\": [\n          {\n            \"Pro_codigo\": \"0001\",\n            \"Pro_ds\": \"{{ $('validate_input').item.json.description }}\",\n            \"Pro_qty\": {{ $('validate_input').item.json.quantity }},\n            \"Pro_umed\": 7,\n            \"Pro_precio_uni\": {{ $('validate_input').item.json.unit_price }},\n            \"Pro_bonificacion\": 0,\n            \"Pro_total_item\": {{ $('validate_input').item.json.amount }}\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0008",
+      "name": "check_result",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-220, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-resultado",
+              "leftValue": "={{ $json.FEXAuthorizeResult.FEXResultAuth.Resultado }}",
+              "rightValue": "A",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0009",
+      "name": "generate_qr",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "parameters": {
+        "jsCode": "const r = $input.first().json.FEXAuthorizeResult.FEXResultAuth;\nconst inv = $('validate_input').item.json;\nconst ctz = $('get_exchange_rate').item.json.FEXGetPARAM_CtzResult.FEXResultGet.Mon_ctz;\n\nconst QRCodeData = {\n  ver: 1,\n  fecha: r.Fch_cbte,\n  cuit: Number(r.Cuit),\n  ptoVta: Number(r.Punto_vta),\n  tipoCmp: Number(r.Cbte_tipo),\n  nroCmp: Number(r.Cbte_nro),\n  importe: Number(inv.amount),\n  moneda: 'DOL',\n  ctz: Number(ctz),\n  tipoDocRec: 99,\n  nroDocRec: Number(inv.client_tax_id),\n  tipoCodAut: 'E',\n  codAut: Number(r.Cae)\n};\n\nconst qr_code_text = 'https://www.afip.gob.ar/fe/qr/?p=' + Buffer.from(JSON.stringify(QRCodeData)).toString('base64');\n\nreturn [{ json: {\n  qr_code_text: qr_code_text,\n  voucher_result: r,\n  invoice_data: inv\n}}];"
+      }
+    },
+    {
+      "id": "node-0010",
+      "name": "generate_html",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [220, 200],
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Factura de Exportacion</title>\n  <style>body { font-family: Arial, sans-serif; width: 750px; margin: 0 auto; padding: 0; background-color: #fff; font-size: 11px; position: absolute; } .invoice { background-color: white; } .original-row { text-align: center; padding: 10px; border-bottom: 1px solid #000; font-weight: bold; font-size: 14px; } .header-row { display: flex; border-bottom: 2px solid #000; position: relative; } .left-header { flex: 1; padding: 10px; border-right: 1px solid #000; } .right-header { flex: 1; padding: 10px; } .code-box { position: absolute; left: 50%; top: 1px; transform: translateX(-50%); border: 1px solid #000; padding: 2px 7px; text-align: center; background-color: white; z-index: 10; } .code-e { font-size: 24px; font-weight: bold; margin-bottom: 5px; } .code-19 { font-size: 10px; } .factura-title { font-weight: bold; font-size: 14px; margin-top: 60px; } .right-details { margin-top: 10px; } .company-row { padding: 10px; border-bottom: 1px solid #000; } .company-details { display: flex; gap: 30px; margin-top: 10px; } .client-section { flex: 1; } .address-section { flex: 1; } .full-width-row { padding: 8px; border-bottom: 1px solid #000; background-color: #f8f8f8; } .summary-row { padding: 10px; border-bottom: 1px solid #000; background-color: #f8f8f8; text-align: right; } .payment-row { display: flex; gap: 30px; padding: 10px; border-bottom: 1px solid #000; align-items: center; } .items-table { width: 100%; border-collapse: collapse; margin-bottom: 0; } .items-table th { background-color: #d0d0d0; border: 1px solid #000; padding: 5px; font-size: 10px; font-weight: bold; text-align: center; } .items-table td { border: 1px solid #000; padding: 5px; font-size: 10px; text-align: center; } .item-description { text-align: left !important; } .total-amount { font-size: 14px; font-weight: bold; margin-top: 5px; } .footer-section { display: flex; padding: 15px; border-top: 1px solid #000; align-items: flex-start; gap: 20px; } .qr-section { text-align: center; } .qr-placeholder { width: 300px; height: 300px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 8px; margin-bottom: 5px; } .arca-section { margin-right: 20px; } .cae-section { flex: 1; text-align: left; width: max-content; min-width: max-content; } .field { margin-bottom: 3px; font-size: 11px; } .field-label { font-weight: bold; display: inline-block; } .company-name { font-weight: bold; font-size: 12px; margin-bottom: 8px; margin-top: 60px; } .bold-text { font-weight: 600; }</style>\n</head>\n<body>\n  <div class=\"invoice\">\n    <div class=\"original-row\">ORIGINAL</div>\n    <div class=\"header-row\">\n      <div class=\"code-box\">\n        <div class=\"code-e\">{{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Cbte_tipo || 'E' }}</div>\n        <div class=\"code-19\">COD. 19</div>\n      </div>\n      <div class=\"left-header\">\n        <div class=\"company-name\">DEL PADRE CABRERA RODRIGO DAVID</div>\n        <div class=\"field\"><span class=\"field-label\">Razon Social:</span> DEL PADRE CABRERA RODRIGO DAVID</div>\n        <div class=\"field\"><span class=\"field-label\">Domicilio Comercial:</span> Bolivia 165 - Barrio Nueva Cordoba, Cordoba, Argentina</div>\n        <div class=\"field\"><span class=\"field-label\">Condicion frente al IVA:</span> Responsable Monotributo</div>\n      </div>\n      <div class=\"right-header\">\n        <div class=\"factura-title\">FACTURA DE EXPORTACION</div>\n        <div class=\"right-details\">\n          <div class=\"field\"><span class=\"field-label\">Compr. Nro:</span> {{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Cbte_nro || '001' }}</div>\n          <div class=\"field\"><span class=\"field-label\">Fecha de Emision:</span> {{ ($('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Fch_cbte || '20250101').toString().replace(/(\\d{4})(\\d{2})(\\d{2})/, '$3/$2/$1') }}</div>\n          <div class=\"field\"><span class=\"field-label\">CUIT:</span> {{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Cuit || '20400832278' }}</div>\n          <div class=\"field\"><span class=\"field-label\">Ingresos Brutos:</span> 20-40083227-8</div>\n          <div class=\"field\"><span class=\"field-label\">Fecha de Inicio de Actividades:</span> 01/09/2021</div>\n          <div class=\"field\"><span class=\"field-label\">IVA EXENTO OPERACION DE EXPORTACION</span></div>\n        </div>\n      </div>\n    </div>\n    <div class=\"company-row\">\n      <div class=\"company-details\">\n        <div class=\"client-section\">\n          <div class=\"field\"><span class=\"field-label\">Senores:</span> {{ $('validate_input').item.json.client_name }}</div>\n          <div class=\"field\"><span class=\"field-label\">Pais:</span> {{ $('validate_input').item.json.client_country }}</div>\n          <div class=\"field\"><span class=\"field-label\">CUIT Pais:</span> {{ $('validate_input').item.json.cuit_pais }} ({{ $('validate_input').item.json.client_country }} - Persona juridica)</div>\n          <div class=\"field\"><span class=\"field-label\">ID Impositivo:</span> {{ $('validate_input').item.json.client_tax_id }}</div>\n        </div>\n        <div class=\"address-section\">\n          <div class=\"field\"><span class=\"field-label\">Domicilio:</span> {{ $('validate_input').item.json.client_address }}</div>\n        </div>\n      </div>\n    </div>\n    <div class=\"full-width-row\">\n      <div class=\"field\"><span class=\"field-label\">Divisa:</span> USD - Dolar Estadounidense</div>\n    </div>\n    <div class=\"full-width-row\">\n      <div class=\"field\"><span class=\"field-label\">Destino del Comprobante:</span> {{ $('validate_input').item.json.client_country }}</div>\n    </div>\n    <div class=\"payment-row\">\n      <div class=\"field\"><span class=\"field-label\">Forma de Pago:</span> {{ $('validate_input').item.json.payment_method }}</div>\n      <div class=\"field\"><span class=\"field-label\">Fecha de Pago:</span> {{ $('validate_input').item.json.fecha_pago.toString().replace(/(\\d{4})(\\d{2})(\\d{2})/, '$3/$2/$1') }}</div>\n      <div class=\"field\"><span class=\"field-label\">Incoterms:</span> </div>\n    </div>\n    <table class=\"items-table\">\n      <thead>\n        <tr>\n          <th>Item</th>\n          <th>Descripcion</th>\n          <th>Cantidad</th>\n          <th>Precio Unit. (USD)</th>\n          <th>Total por Item (USD)</th>\n        </tr>\n      </thead>\n      <tbody>\n        <tr>\n          <td>1</td>\n          <td class=\"item-description\">{{ $('validate_input').item.json.description }}</td>\n          <td>{{ $('validate_input').item.json.quantity.toFixed(6) }}<br><small>U. Medida: otras unidades</small></td>\n          <td>{{ $('validate_input').item.json.unit_price.toFixed(6) }}</td>\n          <td>{{ $('validate_input').item.json.amount.toFixed(2) }}</td>\n        </tr>\n      </tbody>\n    </table>\n    <div class=\"summary-row\">\n      <div class=\"field\"><span class=\"field-label\">Tipo de Cambio:</span> {{ $('get_exchange_rate').item.json.FEXGetPARAM_CtzResult.FEXResultGet.Mon_ctz }} ARS/USD</div>\n      <div class=\"field\"><span class=\"field-label\">Divisa:</span> USD - Dolar Estadounidense</div>\n      <div class=\"total-amount\"><span class=\"field-label\">Importe Total:</span> {{ $('validate_input').item.json.amount.toFixed(2) }}</div>\n    </div>\n    <div class=\"footer-section\">\n      <div class=\"qr-section\">\n        <img class=\"qr-placeholder\" src=\"{{ 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent($json.qr_code_text) }}\">\n      </div>\n      <div class=\"arca-section\">\n        <div style=\"font-weight: bold; font-size: 14px;\">ARCA</div>\n        <div style=\"font-size: 9px;\">Organismo gubernamental</div>\n        <div style=\"margin-top: 10px; font-weight: bold;\">Comprobante Autorizado</div>\n        <div class=\"bold-text\" style=\"font-size: 9px; margin-top: 10px;\">Esta Agencia no se responsabiliza por la veracidad de los datos ingresados en el detalle de la operacion</div>\n      </div>\n      <div class=\"cae-section\">\n        <div class=\"field\"><span class=\"field-label\">CAE N:</span> {{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Cae || '12345678901234' }}</div>\n        <div class=\"field\"><span class=\"field-label\">Fecha de Vto. de CAE:</span> {{ ($('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Fch_venc_Cae || '20250101').toString().replace(/(\\d{4})(\\d{2})(\\d{2})/, '$3/$2/$1') }}</div>\n      </div>\n    </div>\n  </div>\n</body>\n</html>"
+      }
+    },
+    {
+      "id": "node-0011",
+      "name": "create_pdf",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.afipsdk.com/api/v1/pdfs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.AFIP_SDK_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n\"html\": $(\"generate_html\").item.json.html,\n\"file_name\": \"Factura_\" + $('validate_input').item.json.client_name.replace(/\\s+/g, '_'),\n\"options\": {\n\"width\": 8,\n\"marginLeft\": 0.4,\n\"marginRight\": 0.4,\n\"marginTop\": 0.4,\n\"marginBottom\": 0.4\n}\n}\n}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-0012",
+      "name": "success_output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [660, 200],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "out-cae",
+              "name": "cae",
+              "type": "string",
+              "value": "={{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Cae }}"
+            },
+            {
+              "id": "out-cbte",
+              "name": "cbte_nro",
+              "type": "number",
+              "value": "={{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Cbte_nro }}"
+            },
+            {
+              "id": "out-fecha",
+              "name": "fecha",
+              "type": "string",
+              "value": "={{ $('validate_input').item.json.fecha_cbte }}"
+            },
+            {
+              "id": "out-vto",
+              "name": "vencimiento_cae",
+              "type": "string",
+              "value": "={{ $('create_voucher').item.json.FEXAuthorizeResult.FEXResultAuth.Fch_venc_Cae }}"
+            },
+            {
+              "id": "out-cliente",
+              "name": "cliente",
+              "type": "string",
+              "value": "={{ $('validate_input').item.json.client_name }}"
+            },
+            {
+              "id": "out-total",
+              "name": "total_usd",
+              "type": "number",
+              "value": "={{ $('validate_input').item.json.amount }}"
+            },
+            {
+              "id": "out-pdf",
+              "name": "pdf_url",
+              "type": "string",
+              "value": "={{ $json.url || $json.pdf_url || 'PDF generado' }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-0013",
+      "name": "error_output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [0, 450],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "err-code",
+              "name": "error_code",
+              "type": "string",
+              "value": "={{ $json.FEXAuthorizeResult ? $json.FEXAuthorizeResult.FEXErr.ErrCode : ($json.error ? $json.error.code : 'HTTP_ERROR') }}"
+            },
+            {
+              "id": "err-msg",
+              "name": "error_message",
+              "type": "string",
+              "value": "={{ $json.FEXAuthorizeResult ? $json.FEXAuthorizeResult.FEXErr.ErrMsg : JSON.stringify($json) }}"
+            },
+            {
+              "id": "err-resultado",
+              "name": "resultado",
+              "type": "string",
+              "value": "={{ $json.FEXAuthorizeResult ? $json.FEXAuthorizeResult.FEXResultAuth.Resultado : 'ERROR' }}"
+            },
+            {
+              "id": "err-input",
+              "name": "input_data",
+              "type": "object",
+              "value": "={{ $('validate_input').item.json }}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Formulario Factura": {
+      "main": [[{ "node": "validate_input", "type": "main", "index": 0 }]]
+    },
+    "validate_input": {
+      "main": [[{ "node": "get_authorization", "type": "main", "index": 0 }]]
+    },
+    "get_authorization": {
+      "main": [[{ "node": "get_last_id", "type": "main", "index": 0 }]]
+    },
+    "get_last_id": {
+      "main": [[{ "node": "get_last_cmp", "type": "main", "index": 0 }]]
+    },
+    "get_last_cmp": {
+      "main": [[{ "node": "get_exchange_rate", "type": "main", "index": 0 }]]
+    },
+    "get_exchange_rate": {
+      "main": [[{ "node": "create_voucher", "type": "main", "index": 0 }]]
+    },
+    "create_voucher": {
+      "main": [[{ "node": "check_result", "type": "main", "index": 0 }]]
+    },
+    "check_result": {
+      "main": [
+        [{ "node": "generate_qr", "type": "main", "index": 0 }],
+        [{ "node": "error_output", "type": "main", "index": 0 }]
+      ]
+    },
+    "generate_qr": {
+      "main": [[{ "node": "generate_html", "type": "main", "index": 0 }]]
+    },
+    "generate_html": {
+      "main": [[{ "node": "create_pdf", "type": "main", "index": 0 }]]
+    },
+    "create_pdf": {
+      "main": [[{ "node": "success_output", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
