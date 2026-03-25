@@ -11,7 +11,11 @@
       "mcp__n8n-mcp__search_nodes",
       "mcp__n8n-mcp__tools_documentation",
       "mcp__n8n-mcp__n8n_update_full_workflow",
-      "mcp__n8n-mcp__n8n_autofix_workflow"
+      "mcp__n8n-mcp__n8n_autofix_workflow",
+      "mcp__n8n-mcp__n8n_health_check",
+      "WebFetch(domain:afipsdk.com)",
+      "WebFetch(domain:docs.afipsdk.com)",
+      "mcp__n8n-mcp__get_node"
     ]
   },
   "statusLine": {
