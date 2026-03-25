@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@afipsdk/afip.js": "^1.2.3",
+    "dotenv": "^17.3.1"
+  }
+}
