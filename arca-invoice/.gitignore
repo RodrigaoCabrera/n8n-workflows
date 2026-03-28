@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contain credentials)
+.env
+
+# AFIP certificates and keys (sensitive)
+cert.pem
+key.pem
+*.pem
+
+# Temp/scratch files
+cert_key_temp.json
+*_payload.json
+*-payload.json
+workflow-clean.json
+workflow-updated.json
+code-escaped.txt
+issuer-config-code.txt
+mcp_input.json
+operations.json

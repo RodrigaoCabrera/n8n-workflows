@@ -1,5 +1,14 @@
-# Archivo problemático de Windows (nombre de dispositivo reservado)
+# Windows reserved device name
 nul
+
+# Environment variables
 .env
-cert.pem
-key.pem
+
+# Certificates and private keys
+*.pem
+
+# Node dependencies
+node_modules/
+
+# Stock screener data
+Historial.csv
