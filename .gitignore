@@ -12,3 +12,6 @@ node_modules/
 
 # Stock screener data
 Historial.csv
+
+# Claude Code debug logs
+.claude/hook-debug.log
