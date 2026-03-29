@@ -19,3 +19,5 @@ code-escaped.txt
 issuer-config-code.txt
 mcp_input.json
 operations.json
+hook-debug.log
+real-invoice.pdf

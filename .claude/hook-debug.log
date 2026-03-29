@@ -1,0 +1,24 @@
+2026-03-28 12:47:29.513411 - session-start ejecutado
+2026-03-28 12:47:29.517517 - stdin recibido: 291 bytes
+2026-03-28 12:47:29.520495 - cwd: D:\inside-projects\n8n-workflows
+2026-03-28 12:47:29.523715 - cargando session-context.md
+2026-03-28 12:47:29.618535 - git returncode: 0
+2026-03-28 12:47:29.711459 - enviando additionalContext: 3791 chars
+2026-03-29 12:37:46.470549 - session-start ejecutado
+2026-03-29 12:37:46.478315 - stdin recibido: 291 bytes
+2026-03-29 12:37:46.483434 - cwd: D:\inside-projects\n8n-workflows
+2026-03-29 12:37:46.486916 - cargando session-context.md
+2026-03-29 12:37:46.609913 - git returncode: 0
+2026-03-29 12:37:46.715437 - enviando additionalContext: 3824 chars
+2026-03-29 12:48:32.796113 - session-end ejecutado
+2026-03-29 12:48:32.804153 - stdin recibido: 289 bytes
+2026-03-29 12:48:32.807898 - transcript_path: C:\Users\RodrigoCabrera\.claude\projects\D--inside-projects-n8n-workflows\18c03042-ac62-47b8-8172-c223b658e025.jsonl
+2026-03-29 12:48:32.814583 - mensajes extraidos: 20
+2026-03-29 12:48:32.817534 - mensajes seleccionados: 20
+2026-03-29 12:48:32.820997 - intentando con minimax-m2.5:cloud
+2026-03-29 12:48:34.086609 - session-start ejecutado
+2026-03-29 12:48:34.089892 - stdin recibido: 319 bytes
+2026-03-29 12:48:34.093797 - cwd: D:\inside-projects\n8n-workflows
+2026-03-29 12:48:34.097852 - cargando session-context.md
+2026-03-29 12:48:34.169930 - git returncode: 0
+2026-03-29 12:48:34.254194 - enviando additionalContext: 3851 chars
