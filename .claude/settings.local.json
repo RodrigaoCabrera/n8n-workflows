@@ -16,7 +16,8 @@
       "WebFetch(domain:afipsdk.com)",
       "WebFetch(domain:docs.afipsdk.com)",
       "mcp__n8n-mcp__get_node",
-      "WebFetch(domain:www.afip.gob.ar)"
+      "WebFetch(domain:www.afip.gob.ar)",
+      "Bash(python3:*)"
     ]
   },
   "statusLine": {
